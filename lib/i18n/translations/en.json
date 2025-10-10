@@ -1,0 +1,754 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "close": "Close",
+    "copied": "Copied!",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "confirm": "Confirm",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "viewMore": "View more",
+    "viewLess": "View less",
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "profile": "Profile",
+    "settings": "Settings",
+    "help": "Help",
+    "about": "About",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "toggleDistanceUnit": "Toggle distance unit (mi/km)",
+    "github": "GitHub",
+    "openSource": "Open Source"
+  },
+  "map": {
+    "title": "Citibike Station Map",
+    "searchPlaceholder": "Search for a station...",
+    "filters": {
+      "all": "All Stations",
+      "available": "Bikes Available",
+      "docks": "Docks Available",
+      "ebikes": "E-Bikes Available"
+    },
+    "station": {
+      "regularBikes": "Regular bikes",
+      "eBikes": "E-bikes",
+      "docksAvailable": "Docks available",
+      "outOfService": "Out of service",
+      "noData": "No data available",
+      "lastUpdated": "Updated {{time}}",
+      "selectStart": "Select as start",
+      "selectEnd": "Select as end",
+      "navigate": "Navigate",
+      "favorite": "Add to favorites",
+      "unfavorite": "Remove from favorites"
+    },
+    "route": {
+      "title": "Route Planner",
+      "from": "From",
+      "to": "To",
+      "startPlaceholder": "Choose starting point...",
+      "endPlaceholder": "Choose destination...",
+      "addWaypoint": "Add waypoint",
+      "removeWaypoint": "Remove waypoint",
+      "clearRoute": "Clear route",
+      "getDirections": "Get Directions",
+      "routeOptions": "Route Options",
+      "fastest": "Fastest",
+      "flattest": "Flattest",
+      "safest": "Safest",
+      "distance": "Distance",
+      "duration": "Duration",
+      "elevation": "Elevation",
+      "turns": "{{count}} turn",
+      "turns_plural": "{{count}} turns",
+      "panel": {
+        "title": "Your Route",
+        "shareRoute": "Share route",
+        "estimatedRoute": "Estimated bike route",
+        "estimatedTime": "Est. Time",
+        "minutes": "{{count}} min",
+        "averageSpeedMiles": "@ 9 mph",
+        "averageSpeedKm": "@ 15 km/h",
+        "start": "Start",
+        "end": "End",
+        "bikesAvailable": "bikes",
+        "ebikesAvailable": "e-bikes available",
+        "docksAvailable": "docks available",
+        "noBikesTitle": "No bikes available",
+        "noBikesMessage": "Start station currently has no bikes. Check nearby stations.",
+        "noDocksTitle": "No docks available",
+        "noDocksMessage": "End station is full. Consider a nearby station.",
+        "note": "Note:",
+        "noteMessage": "This is a straight-line distance estimate. Actual cycling route may be longer depending on bike paths and streets.",
+        "exportRoute": "Export Route",
+        "exportDescription": "Download for GPS devices or Google Earth"
+      }
+    },
+    "legend": {
+      "title": "Legend",
+      "lowAvailability": "Low availability",
+      "mediumAvailability": "Medium availability",
+      "highAvailability": "High availability",
+      "cluster": "Multiple stations"
+    },
+    "controls": {
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "myLocation": "My location",
+      "fullscreen": "Fullscreen",
+      "layers": "Map layers"
+    },
+    "toast": {
+      "linkCopied": "Link copied to clipboard!",
+      "locationError": "Could not get your location",
+      "routeError": "Could not calculate route",
+      "stationError": "Could not load station data"
+    }
+  },
+  "auth": {
+    "title": "Sign in to Citibike",
+    "subtitle": "Enter your phone number to continue",
+    "phone": {
+      "title": "Enter Phone Number",
+      "label": "Phone Number",
+      "placeholder": "(555) 123-4567",
+      "description": "Enter your phone number to receive a verification code via SMS.",
+      "helper": "We'll send you a verification code via SMS",
+      "error": {
+        "required": "Phone number is required",
+        "invalid": "Please enter a valid phone number",
+        "tooShort": "Phone number is too short",
+        "tooLong": "Phone number is too long"
+      }
+    },
+    "otp": {
+      "title": "Enter Verification Code",
+      "subtitle": "We sent a code to {{phone}}",
+      "description": "Enter the 4-6 digit code sent to {{phone}}",
+      "label": "Verification Code",
+      "placeholder": "••••••",
+      "helper": "Didn't receive the code?",
+      "resend": "Resend code",
+      "resendIn": "Resend in {{seconds}}s",
+      "changeNumber": "Change phone number",
+      "codeSentFrom": "Code sent from +1 (833) 504-2560",
+      "expiresIn": "Expires in {{minutes}} minutes",
+      "didntReceive": "Didn't receive code? Resend",
+      "error": {
+        "required": "Verification code is required",
+        "invalid": "Invalid code format",
+        "expired": "Code has expired",
+        "incorrect": "Incorrect code",
+        "tooManyAttempts": "Too many attempts. Please try again later."
+      }
+    },
+    "challenge": {
+      "title": "Verify your email",
+      "subtitle": "For security, please confirm your email address",
+      "securityTitle": "Security Verification Required",
+      "securityDescription": "To confirm this is your account, please enter the email address associated with your Citibike account.",
+      "label": "Email Address",
+      "placeholder": "your.email@gmail.com",
+      "helper": "Enter the email associated with your account",
+      "hint": "Hint",
+      "error": {
+        "required": "Email is required",
+        "invalid": "Please enter a valid email",
+        "incorrect": "Email doesn't match our records"
+      }
+    },
+    "success": {
+      "title": "Welcome!",
+      "subtitle": "You're now signed in",
+      "message": "Redirecting to your account..."
+    },
+    "error": {
+      "network": "Network error. Please check your connection.",
+      "server": "Server error. Please try again later.",
+      "generic": "Something went wrong. Please try again.",
+      "sessionExpired": "Your session has expired. Please sign in again.",
+      "sendCode": "Failed to send code",
+      "verificationFailed": "Verification failed",
+      "emailVerificationFailed": "Email verification failed"
+    },
+    "buttons": {
+      "sendCode": "Send Code",
+      "verifyCode": "Verify Code",
+      "verifyEmail": "Verify Email",
+      "signIn": "Sign In",
+      "signOut": "Sign Out",
+      "continue": "Continue",
+      "back": "Back",
+      "login": "Login",
+      "logout": "Logout",
+      "connectAccount": "Connect Citibike Account",
+      "manualUpload": "Or upload trip data manually →"
+    },
+    "messages": {
+      "codeSent": "Code sent! Check your phone.",
+      "successfulConnection": "Successfully connected to Citibike account!",
+      "manualUploadComingSoon": "Manual upload coming soon!"
+    },
+    "privacy": {
+      "title": "Your privacy matters",
+      "phoneVerification": "Phone number used for verification only",
+      "dataLocal": "All data stays on your device",
+      "secureCookies": "Secure httpOnly cookies used",
+      "personalUse": "For personal use only"
+    },
+    "security": {
+      "credentialsStored": "Your credentials are stored securely"
+    }
+  },
+  "account": {
+    "title": "My Account",
+    "profile": {
+      "title": "Profile",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "memberId": "Member ID",
+      "memberSince": "Member Since",
+      "membershipType": "Membership Type",
+      "ridesTaken": "Rides Taken",
+      "editProfile": "Edit Profile",
+      "changePassword": "Change Password",
+      "managePayment": "Manage Payment Methods",
+      "defaultName": "User",
+      "defaultUser": "Citibike User"
+    },
+    "stats": {
+      "rides": "{{count}} rides"
+    },
+    "subscription": {
+      "title": "Subscription",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "expired": "Expired",
+      "cancelled": "Cancelled",
+      "type": "Type",
+      "annual": "Annual Member",
+      "monthly": "Monthly Member",
+      "dayPass": "Day Pass",
+      "singleRide": "Single Ride",
+      "nextBilling": "Next billing date",
+      "expires": "Expires on",
+      "autoRenew": "Auto-renewal",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "upgrade": "Upgrade Plan",
+      "cancel": "Cancel Subscription",
+      "reactivate": "Reactivate"
+    },
+    "rides": {
+      "title": "Ride History",
+      "noRides": "No rides yet",
+      "startStation": "Start Station",
+      "endStation": "End Station",
+      "duration": "Duration",
+      "distance": "Distance",
+      "cost": "Cost",
+      "bikeType": "Bike Type",
+      "regular": "Regular",
+      "electric": "Electric",
+      "viewDetails": "View Details",
+      "reportIssue": "Report Issue"
+    },
+    "settings": {
+      "title": "Settings",
+      "notifications": "Notifications",
+      "pushNotifications": "Push Notifications",
+      "emailNotifications": "Email Notifications",
+      "smsNotifications": "SMS Notifications",
+      "language": "Language",
+      "units": "Units",
+      "metric": "Metric (km)",
+      "imperial": "Imperial (mi)",
+      "privacy": "Privacy",
+      "shareLocation": "Share Location",
+      "shareData": "Share Usage Data",
+      "deleteAccount": "Delete Account"
+    }
+  },
+  "errors": {
+    "network": {
+      "title": "Network Error",
+      "message": "Please check your internet connection and try again.",
+      "retry": "Retry"
+    },
+    "server": {
+      "title": "Server Error",
+      "message": "Something went wrong on our end. Please try again later.",
+      "code": "Error Code: {{code}}"
+    },
+    "notFound": {
+      "title": "Page Not Found",
+      "message": "The page you're looking for doesn't exist.",
+      "home": "Go Home"
+    },
+    "unauthorized": {
+      "title": "Unauthorized",
+      "message": "Please sign in to continue.",
+      "signIn": "Sign In"
+    },
+    "forbidden": {
+      "title": "Access Denied",
+      "message": "You don't have permission to access this resource."
+    },
+    "validation": {
+      "required": "This field is required",
+      "email": "Please enter a valid email",
+      "phone": "Please enter a valid phone number",
+      "minLength": "Must be at least {{min}} characters",
+      "maxLength": "Must be no more than {{max}} characters",
+      "pattern": "Invalid format"
+    }
+  },
+  "api": {
+    "messages": {
+      "otpSent": "Verification code sent! Check your phone for a text from +1 (833) 504-2560.",
+      "otpVerified": "Successfully verified!",
+      "challengeRequired": "Email verification required for security.",
+      "loggedOut": "You have been logged out.",
+      "sessionExpired": "Session expired. Please request a new code.",
+      "invalidCredentials": "Invalid credentials. Please try again.",
+      "tooManyAttempts": "Too many attempts. Please try again later.",
+      "serverError": "An error occurred. Please try again.",
+      "networkError": "Network error. Please check your connection."
+    }
+  },
+  "metadata": {
+    "title": "Citibike Route Planner",
+    "description": "Plan your Citibike route with real-time station availability",
+    "keywords": "citibike, bike share, route planner, NYC, transportation"
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "current": "Current theme: {{theme}}",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "routeProfile": {
+    "title": "Route Preference",
+    "fastest": {
+      "name": "Fastest",
+      "description": "Quickest route to destination"
+    },
+    "safest": {
+      "name": "Safest",
+      "description": "Prioritizes bike lanes and quiet streets"
+    },
+    "scenic": {
+      "name": "Scenic",
+      "description": "Routes through parks and waterfront"
+    },
+    "insane": {
+      "name": "Insane",
+      "description": "Shortest path, ignores traffic rules & lights"
+    },
+    "selectStations": "Select start and end stations to choose route preference"
+  },
+  "navigation": {
+    "title": "Navigation",
+    "steps": "{{count}} steps",
+    "startFrom": "Start from {{station}}. {{instruction}}",
+    "arriveAt": "{{instruction}} to reach {{station}}"
+  },
+  "legend": {
+    "title": "Station Markers",
+    "markerColors": "Marker Colors",
+    "bikeTypeIcons": "Bike Type Icons",
+    "iconsHelp": "Icons show bike types without hovering"
+  },
+  "userProfile": {
+    "logout": "Logout",
+    "tripStats": "Trip Stats",
+    "bikeAngel": "Bike Angel",
+    "tripHistory": "Trip History",
+    "yourProfile": "Your Profile",
+    "member": "Member"
+  },
+  "waypoints": {
+    "title": "Route Stops",
+    "clearAll": "Clear all",
+    "addStop": "Add stop",
+    "searchPlaceholder": "Search for a stop...",
+    "cancel": "Cancel",
+    "maxReached": "Maximum of 3 waypoints reached",
+    "bikesAvailable": "{{count}} bikes"
+  },
+  "routeHistory": {
+    "title": "Saved Routes",
+    "saveCurrentRoute": "Save Current Route",
+    "routeName": "Route Name",
+    "routeNamePlaceholder": "e.g., Morning Commute",
+    "save": "Save",
+    "cancel": "Cancel",
+    "noRoutes": "No saved routes yet",
+    "noRoutesDescription": "Plan a route and save it for quick access later",
+    "deleteRoute": "Delete route",
+    "waypoint": "waypoint",
+    "waypoints": "{{count}} waypoint",
+    "waypoints_plural": "{{count}} waypoints"
+  },
+  "bikeAngel": {
+    "title": "Bike Angel",
+    "points": "points",
+    "streak": "Streak",
+    "best": "Best:",
+    "lifetime": "Lifetime",
+    "allTimePoints": "All time points",
+    "thisMonth": "This Month",
+    "rides": "rides",
+    "level": "Level",
+    "toNext": "to next",
+    "maxLevel": "Max level",
+    "availableRewards": "Available Rewards",
+    "whatIs": "What is Bike Angel?",
+    "description": "Earn points by helping balance the Citibike system. Pick up bikes from full stations or drop off at empty ones to earn rewards!",
+    "refreshTitle": "Refresh Bike Angel data"
+  },
+  "page": {
+    "errorLoadingTitle": "Error Loading Stations",
+    "errorLoadingMessage": "Failed to fetch Citibike station data. Please try refreshing the page.",
+    "refreshPage": "Refresh Page",
+    "appTitle": "Citibike",
+    "appSubtitle": "Find the best route between stations",
+    "updated": "Updated",
+    "from": "From:",
+    "to": "To:",
+    "selectStations": "Select Stations",
+    "shareRoute": "Share Route",
+    "route": "Route",
+    "loadingStations": "Loading Citibike stations...",
+    "clickToStart": "👆 Click on a station or tap \"Select Stations\" to start",
+    "linkCopied": "Link copied to clipboard!",
+    "tripHistory": "Trip History"
+  },
+  "tripStats": {
+    "title": "Your Stats",
+    "clearAll": "Clear All",
+    "syncTrips": "Sync Trips",
+    "syncing": "Syncing...",
+    "page": "Page",
+    "trips": "trips",
+    "noTrips": "No trips yet",
+    "noTripsDescription": "Click \"Sync Trips\" to load your ride history",
+    "totalRides": "Total Rides",
+    "distance": "Distance",
+    "avgSpeedMiles": "~9 mph avg",
+    "avgSpeedKm": "~15 km/h avg",
+    "rideTime": "Ride Time",
+    "co2Saved": "CO₂ Saved",
+    "moneySaved": "Money Saved",
+    "bikeIcon": "🚲",
+    "classic": "classic",
+    "ebike": "e-bike",
+    "topStartStations": "Top Start Stations",
+    "storedLocally": "stored locally",
+    "distanceEstimatedMiles": "Distance and speed estimated from ride duration (~9 mph avg)",
+    "distanceEstimatedKm": "Distance and speed estimated from ride duration (~15 km/h avg)",
+    "confirmClearAll": "Are you sure you want to clear all trip data? This cannot be undone.",
+    "allDataCleared": "All trip data has been cleared!",
+    "syncedTrips": "Synced {{count}} new trip!",
+    "syncedTrips_plural": "Synced {{count}} new trips!",
+    "exportData": "Export Data",
+    "exportDataDescription": "Download your trip data as JSON",
+    "dataExported": "Trip data exported successfully!",
+    "noDataToExport": "No trips to export. Sync some trips first!",
+    "cloudBackup": "Cloud Backup",
+    "cloudBackupDescription": "Optional: Backup your trips to the cloud for cross-device access",
+    "signInWithGoogle": "Sign in with Google",
+    "signInPrompt": "Sign in to enable cloud backup",
+    "backupToCloud": "Backup to Cloud",
+    "restoreFromCloud": "Restore from Cloud",
+    "backingUp": "Backing up...",
+    "restoring": "Restoring...",
+    "backedUp": "Backed up {{count}} trip to cloud!",
+    "backedUp_plural": "Backed up {{count}} trips to cloud!",
+    "restored": "Restored {{count}} trip from cloud!",
+    "restored_plural": "Restored {{count}} trips from cloud!",
+    "notAuthenticated": "Not authenticated. Please sign in first.",
+    "backupFailed": "Backup failed: {{error}}",
+    "restoreFailed": "Restore failed: {{error}}",
+    "cloudStatus": "Cloud Status",
+    "tripsInCloud": "{{count}} trip in cloud",
+    "tripsInCloud_plural": "{{count}} trips in cloud",
+    "lastBackup": "Last backup: {{time}}",
+    "neverBackedUp": "Never backed up",
+    "signedInAs": "Signed in as {{email}}",
+    "cloudNotConfigured": "Cloud backup not configured"
+  },
+  "stationSelector": {
+    "title": "Select Stations",
+    "searchPlaceholder": "Search stations...",
+    "gettingLocation": "Getting location...",
+    "findNearest": "Find Nearest",
+    "clear": "Clear",
+    "nearestStations": "Showing 10 nearest stations to your location",
+    "all": "All",
+    "bikes": "Bikes",
+    "bikesLower": "bikes",
+    "ebikes": "E-bikes",
+    "ebikesLower": "e-bikes",
+    "docks": "Docks",
+    "docksLower": "docks",
+    "away": "away",
+    "favorites": "Favorites",
+    "start": "Start",
+    "end": "End",
+    "clearRoute": "Clear Route",
+    "selected": "Selected",
+    "browseAll": "Browse all stations",
+    "locationError": "Unable to get your location. Please enable location services.",
+    "geolocationUnsupported": "Geolocation is not supported by your browser.",
+    "noFavorites": "No favorite stations yet",
+    "noFavoritesHint": "Click the ☆ star on any station to save it as a favorite",
+    "noStations": "No stations found",
+    "noStationsHint": "Try a different search term or filter"
+  },
+  "tripHistory": {
+    "loading": "Loading trip history...",
+    "noTrips": "No trips yet",
+    "noTripsDescription": "Start tracking your Citibike rides to see analytics and insights",
+    "noTripsSubtext": "Trips will be automatically saved when you complete a route",
+    "allTime": "All Time",
+    "last": "Last {{period}}",
+    "overview": "Overview",
+    "totalTrips": "Total Trips",
+    "distance": "Distance",
+    "avg": "Avg",
+    "time": "Time",
+    "co2Saved": "CO₂ Saved",
+    "moneySaved": "Money Saved",
+    "bikeType": "Bike Type",
+    "classic": "Classic",
+    "ebike": "E-bike",
+    "ridingPatterns": "Riding Patterns",
+    "byDayOfWeek": "By Day of Week",
+    "mostFrequentRoute": "Most Frequent Route",
+    "favoriteStations": "Favorite Stations",
+    "mostUsedStartStations": "Most Used Start Stations",
+    "mostUsedEndStations": "Most Used End Stations",
+    "recentTrips": "Recent Trips",
+    "tripsCount": "{{count}} trips",
+    "tripsWord": "trips",
+    "at": "at",
+    "excludes": "* Excludes",
+    "unknownStationData": "trips with unknown station data",
+    "tripsWithUnknownData": "trips with unknown station data"
+  },
+  "tripsPage": {
+    "loginRequired": "Please log in to view your trips",
+    "loginDescription": "You need to be logged in with your Citibike account to see your trip history.",
+    "goToHomePage": "Go to Home Page",
+    "loadingTrips": "Loading trips...",
+    "noTripsFound": "No trips found",
+    "noTripsDescription": "You haven't synced any trips yet. Go to the home page and sync your trip data to see your history.",
+    "back": "← Back",
+    "title": "Trip History",
+    "statistics": "Statistics",
+    "sync": {
+      "allSynced": "All trips synced",
+      "statsText": "trips with routes",
+      "percentage": "%",
+      "buttonSync": "Sync",
+      "buttonTrip": "trip",
+      "buttonTrips": "trips",
+      "progressPercentage": "%",
+      "progressFailed": "failed"
+    },
+    "preview": {
+      "title": "Unlock Your Trip History",
+      "subtitle": "Connect your Citibike account to:",
+      "features": {
+        "visualize": "Visualize your ride history on an interactive map",
+        "heatmap": "View heatmaps of your most-traveled routes",
+        "stats": "Track detailed statistics and environmental impact",
+        "insights": "Get insights on your riding patterns"
+      },
+      "cta": "Connect Citibike Account",
+      "demoNotice": "Preview of trip history interface"
+    }
+  },
+  "tripList": {
+    "allTrips": "All Trips ({{count}})",
+    "stationDetailsNotAvailable": "Station details not available",
+    "points": "points",
+    "pointsLower": "points"
+  },
+  "tripVisualizationMap": {
+    "routeNotAvailable": "Route Not Available",
+    "noLocationData": "Station coordinates for this trip are not available. The trip history API doesn't include location data.",
+    "futureUpdates": "Future updates will fetch detailed trip data including routes and station locations.",
+    "selectATrip": "Select a Trip",
+    "chooseTrip": "Choose a trip from the list to visualize it on the map",
+    "tripView": "Trip View",
+    "heatmapView": "Heat Map"
+  },
+  "tripDetailsPanel": {
+    "selectToView": "Select a trip to view details",
+    "title": "Trip Details",
+    "dateTime": "Date & Time",
+    "tripStats": "Trip Stats",
+    "duration": "Duration",
+    "distance": "Distance",
+    "estimated": "(est.)",
+    "avgSpeed": "Avg. Speed",
+    "bikeDetails": "Bike Details",
+    "electricBike": "Electric Bike",
+    "classicBike": "Classic Bike",
+    "pedalAssist": "Pedal-assist electric",
+    "standardBike": "Standard pedal bike",
+    "cost": "Cost",
+    "amountPaid": "Amount Paid",
+    "bikeAngelPoints": "Bike Angel Points",
+    "earnedForBalancing": "Earned for helping balance the system",
+    "environmentalImpact": "Environmental Impact",
+    "co2Saved": "CO₂ Saved (vs. car)",
+    "co2TreeEquivalent": "Equivalent to the CO₂ absorbed by a tree in about {{hours}} hours",
+    "stations": "Stations",
+    "start": "Start",
+    "end": "End",
+    "routeDataFromDetails": "✓ Route data from trip details",
+    "distanceEstimatedMiles": "~ Distance and speed estimated from ride duration (~9 mph avg)",
+    "distanceEstimatedKm": "~ Distance and speed estimated from ride duration (~15 km/h avg)",
+    "pointsLower": "points"
+  },
+  "tripFilters": {
+    "filters": "Filters",
+    "active": "Active",
+    "showingAll": "Showing all {{count}} trips",
+    "showingFiltered": "Showing {{filtered}} of {{total}} trips",
+    "searchStations": "Search Stations",
+    "searchPlaceholder": "Search by station name...",
+    "bikeType": "Bike Type",
+    "allBikes": "All",
+    "classic": "Classic",
+    "ebike": "E-bike",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "apply": "Apply Filters",
+    "clear": "Clear",
+    "advancedFilters": "Advanced Filters",
+    "minDuration": "Min Duration (min)",
+    "maxDuration": "Max Duration (min)",
+    "minDistance": "Min Distance",
+    "maxDistance": "Max Distance",
+    "minDistanceMiles": "Min Distance (mi)",
+    "maxDistanceMiles": "Max Distance (mi)",
+    "minDistanceKm": "Min Distance (km)",
+    "maxDistanceKm": "Max Distance (km)",
+    "onlyAngelPoints": "Only trips with Angel Points",
+    "minAngelPoints": "Min Angel Points",
+    "syncStatus": "Sync Status",
+    "allTrips": "All Trips",
+    "synced": "Synced",
+    "unsynced": "Unsynced"
+  },
+  "tripComparison": {
+    "title": "How This Trip Compares",
+    "vsAvgDuration": "vs. Your Average Duration",
+    "vsAvgDistance": "vs. Your Average Distance",
+    "average": "Average",
+    "percentage": "%",
+    "recordLongestDuration": "Longest trip by duration",
+    "recordShortestDuration": "Shortest trip by duration",
+    "recordLongestDistance": "Longest trip by distance",
+    "recordShortestDistance": "Shortest trip by distance",
+    "records": "Personal Records",
+    "trophy": "🏆",
+    "basedOn": "Based on {{count}} total trips"
+  },
+  "tripStatsDashboard": {
+    "noStats": "No statistics available",
+    "mostUsedStations": "Most Used Stations",
+    "starts": "starts",
+    "startsEnds": "starts •",
+    "ends": "ends",
+    "tripsLower": "trips",
+    "favoriteRoutes": "Favorite Routes",
+    "usageByTimeOfDay": "Usage by Time of Day",
+    "peak": "Peak:",
+    "trips": "trips",
+    "tripsCount": "trips)",
+    "usageByDayOfWeek": "Usage by Day of Week",
+    "monthlyTrends": "Monthly Trends"
+  },
+  "tripReplayControls": {
+    "speed": "Speed:",
+    "times": "x",
+    "replayingAt": "Replaying at",
+    "xSpeed": "x speed"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last Updated: October 13 2025",
+    "intro": "This Citibike Route Planner is a personal, open-source project. Your privacy is important",
+    "dataCollection": {
+      "title": "Data Collection",
+      "description": "All data is stored locally on your device using IndexedDB. No data is sent to external servers except:"
+    },
+    "thirdParty": {
+      "title": "Third-Party Services",
+      "mapbox": "Mapbox: Used for map rendering and route calculation",
+      "gbfs": "Citibike GBFS API: Used for real-time station data",
+      "citibikeApi": "Citibike API: Used for optional account login and trip sync (stored locally)"
+    },
+    "cookies": {
+      "title": "Cookies",
+      "description": "If you connect your Citibike account, we use httpOnly cookies to store authentication tokens securely. These are not accessible via JavaScript and are only used for API authentication"
+    },
+    "dataStorage": {
+      "title": "Data Storage",
+      "description": "All trip data, preferences, and saved routes are stored in your browser's IndexedDB. You can clear this data at any time from your browser settings or from within the app"
+    },
+    "contact": {
+      "title": "Contact",
+      "description": "For questions or concerns, please open an issue on "
+    }
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last Updated: October 13 2025",
+    "intro": "By using this Citibike Route Planner, you agree to these terms",
+    "usage": {
+      "title": "Usage",
+      "description": "This is a personal, non-commercial project. Use at your own risk. The developer is not affiliated with Citibike or Lyft"
+    },
+    "accuracy": {
+      "title": "Accuracy",
+      "description": "While we strive for accuracy, we cannot guarantee real-time station data or route accuracy. Always verify station availability before your trip"
+    },
+    "liability": {
+      "title": "Liability",
+      "description": "The developer is not liable for any issues arising from use of this app, including but not limited to: incorrect route information, station availability errors, or data loss"
+    },
+    "changes": {
+      "title": "Changes",
+      "description": "These terms may be updated at any time. Continued use of the app constitutes acceptance of any changes"
+    },
+    "openSource": {
+      "title": "Open Source",
+      "description": "This project is open source. You can view the source code on "
+    }
+  }
+}

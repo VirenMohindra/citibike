@@ -1,0 +1,167 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import type { AppState, StationWithStatus } from './types';
+
+export const useAppStore = create<AppState>()(
+  persist(
+    (set, get) => ({
+      startStation: null,
+      endStation: null,
+      waypoints: [],
+      route: null,
+      hoveredStation: null,
+      selectedStation: null,
+      mapBounds: null,
+      favoriteStations: [],
+      savedRoutes: [],
+      citibikeUser: null,
+      syncState: {
+        lastSyncTimestamp: null,
+        syncStatus: 'idle',
+        totalTrips: 0,
+      },
+      bikeAngelCache: {
+        data: null,
+        lastFetched: null,
+        error: null,
+      },
+      distanceUnit: 'miles',
+
+      setStartStation: (station) => set({ startStation: station }),
+      setEndStation: (station) => set({ endStation: station }),
+
+      addWaypoint: (station) =>
+        set((state) => ({
+          waypoints: [...state.waypoints, station],
+        })),
+
+      removeWaypoint: (index) =>
+        set((state) => ({
+          waypoints: state.waypoints.filter((_, i) => i !== index),
+        })),
+
+      reorderWaypoints: (fromIndex, toIndex) =>
+        set((state) => {
+          const newWaypoints = [...state.waypoints];
+          const [removed] = newWaypoints.splice(fromIndex, 1);
+          newWaypoints.splice(toIndex, 0, removed);
+          return { waypoints: newWaypoints };
+        }),
+
+      clearWaypoints: () => set({ waypoints: [] }),
+      setRoute: (route) => set({ route }),
+      setHoveredStation: (stationId) => set({ hoveredStation: stationId }),
+      setSelectedStation: (stationId) => set({ selectedStation: stationId }),
+      setMapBounds: (bounds) => set({ mapBounds: bounds }),
+
+      clearRoute: () =>
+        set({
+          startStation: null,
+          endStation: null,
+          waypoints: [],
+          route: null,
+        }),
+
+      toggleFavorite: (stationId) =>
+        set((state) => {
+          const favorites = state.favoriteStations || [];
+          const index = favorites.indexOf(stationId);
+          if (index === -1) {
+            return { favoriteStations: [...favorites, stationId] };
+          } else {
+            return {
+              favoriteStations: favorites.filter((id) => id !== stationId),
+            };
+          }
+        }),
+
+      isFavorite: (stationId) => {
+        const state = get();
+        return (state.favoriteStations || []).includes(stationId);
+      },
+
+      saveRoute: (name, routeProfile) => {
+        const state = get();
+        if (!state.startStation || !state.endStation || !state.route) return;
+
+        const savedRoute = {
+          id: `route_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          name,
+          startStationId: state.startStation.station_id,
+          endStationId: state.endStation.station_id,
+          waypointIds: state.waypoints.map((w) => w.station_id),
+          distance: state.route.distance,
+          duration: state.route.duration,
+          routeProfile,
+          createdAt: Date.now(),
+        };
+
+        set((state) => ({
+          savedRoutes: [savedRoute, ...state.savedRoutes].slice(0, 20), // Keep max 20 routes
+        }));
+      },
+
+      loadRoute: (routeId, stations) => {
+        const state = get();
+        const savedRoute = state.savedRoutes.find((r) => r.id === routeId);
+        if (!savedRoute) return;
+
+        const startStation = stations.find((s) => s.station_id === savedRoute.startStationId);
+        const endStation = stations.find((s) => s.station_id === savedRoute.endStationId);
+        const waypoints = savedRoute.waypointIds
+          .map((id) => stations.find((s) => s.station_id === id))
+          .filter((s): s is StationWithStatus => s !== undefined);
+
+        if (startStation && endStation) {
+          set({
+            startStation,
+            endStation,
+            waypoints,
+          });
+
+          // Update lastUsed timestamp
+          set((state) => ({
+            savedRoutes: state.savedRoutes.map((r) =>
+              r.id === routeId ? { ...r, lastUsed: Date.now() } : r
+            ),
+          }));
+        }
+      },
+
+      deleteRoute: (routeId) =>
+        set((state) => ({
+          savedRoutes: state.savedRoutes.filter((r) => r.id !== routeId),
+        })),
+
+      setCitibikeUser: (user) => set({ citibikeUser: user }),
+
+      setSyncState: (newState) =>
+        set((state) => ({
+          syncState: {
+            ...state.syncState,
+            ...newState,
+          },
+        })),
+
+      setBikeAngelCache: (cache) =>
+        set((state) => ({
+          bikeAngelCache: {
+            ...state.bikeAngelCache,
+            ...cache,
+          },
+        })),
+
+      setDistanceUnit: (unit) => set({ distanceUnit: unit }),
+    }),
+    {
+      name: 'citibike-storage',
+      partialize: (state) => ({
+        favoriteStations: state.favoriteStations,
+        savedRoutes: state.savedRoutes,
+        bikeAngelCache: state.bikeAngelCache,
+        citibikeUser: state.citibikeUser, // Safe to persist - sensitive token is in httpOnly cookie
+        distanceUnit: state.distanceUnit,
+      }),
+    }
+  )
+);
