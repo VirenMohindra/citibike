@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { AppState, StationWithStatus } from './types';
+import { DEFAULT_CITY_ID } from '@/config/cities';
 
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
+      currentCity: DEFAULT_CITY_ID, // Default to NYC for backward compatibility
       startStation: null,
       endStation: null,
       waypoints: [],
@@ -26,6 +28,21 @@ export const useAppStore = create<AppState>()(
         error: null,
       },
       distanceUnit: 'miles',
+      showBikeAngelRewards: true, // Default to showing rewards
+
+      setCurrentCity: (cityId) => {
+        const state = get();
+        // Clear route data when switching cities
+        if (state.currentCity !== cityId) {
+          set({
+            currentCity: cityId,
+            startStation: null,
+            endStation: null,
+            waypoints: [],
+            route: null,
+          });
+        }
+      },
 
       setStartStation: (station) => set({ startStation: station }),
       setEndStation: (station) => set({ endStation: station }),
@@ -152,15 +169,18 @@ export const useAppStore = create<AppState>()(
         })),
 
       setDistanceUnit: (unit) => set({ distanceUnit: unit }),
+      setShowBikeAngelRewards: (show) => set({ showBikeAngelRewards: show }),
     }),
     {
       name: 'citibike-storage',
       partialize: (state) => ({
+        currentCity: state.currentCity,
         favoriteStations: state.favoriteStations,
         savedRoutes: state.savedRoutes,
         bikeAngelCache: state.bikeAngelCache,
         citibikeUser: state.citibikeUser, // Safe to persist - sensitive token is in httpOnly cookie
         distanceUnit: state.distanceUnit,
+        showBikeAngelRewards: state.showBikeAngelRewards,
       }),
     }
   )

@@ -96,18 +96,17 @@ export function getMapboxStyle(theme: 'light' | 'dark'): string {
 // ============================================
 
 /**
- * Common map initialization options optimized for NYC/CitiBike
+ * Common map initialization options for multi-city bikeshare
+ * Note: center and zoom are set dynamically per city by the Map component
  */
 export const COMMON_MAP_OPTIONS: Partial<mapboxgl.MapboxOptions> = {
-  // Geographic constraints
-  center: NYC_CENTER,
-  zoom: DEFAULT_ZOOM,
+  // Geographic constraints (set dynamically per city)
   minZoom: MIN_ZOOM,
   maxZoom: MAX_ZOOM,
-  maxBounds: NYC_BOUNDS_LNGLAT,
+  // maxBounds removed - different cities have different bounds
 
   // Performance optimizations
-  renderWorldCopies: false, // Don't render duplicate worlds (we're locked to NYC)
+  renderWorldCopies: false, // Don't render duplicate worlds
   attributionControl: false, // We add compact attribution separately
 
   // Interaction settings

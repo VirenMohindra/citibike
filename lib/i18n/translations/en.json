@@ -376,7 +376,12 @@
     "title": "Station Markers",
     "markerColors": "Marker Colors",
     "bikeTypeIcons": "Bike Type Icons",
-    "iconsHelp": "Icons show bike types without hovering"
+    "iconsHelp": "Icons show bike types without hovering",
+    "bikeAngelBadges": "Bike Angel Rewards",
+    "badgeLow": "Low rewards (1-2 points)",
+    "badgeMedium": "Medium rewards (3-4 points)",
+    "badgeHigh": "High rewards (5+ points)",
+    "badgesHelp": "Colored badges show Bike Angel point values (members only)"
   },
   "userProfile": {
     "logout": "Logout",
@@ -424,7 +429,8 @@
     "availableRewards": "Available Rewards",
     "whatIs": "What is Bike Angel?",
     "description": "Earn points by helping balance the Citibike system. Pick up bikes from full stations or drop off at empty ones to earn rewards!",
-    "refreshTitle": "Refresh Bike Angel data"
+    "refreshTitle": "Refresh Bike Angel data",
+    "toggleRewards": "Toggle Bike Angel rewards on map"
   },
   "page": {
     "errorLoadingTitle": "Error Loading Stations",

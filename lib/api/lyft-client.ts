@@ -6,7 +6,7 @@
 import { ApiError, BaseApiClient } from './client';
 import { API_CONFIG, createBasicAuth, createLyftHeaders, LYFT_ENDPOINTS } from '@/config/api';
 import { getCitibikeCredentials } from '@/config/environment';
-import { ErrorCode } from '@/config/constants';
+import { ErrorCode, MAP_CONSTANTS } from '@/config/constants';
 import {
   createDeviceIdentifiers,
   createEmptyIdentifiers,
@@ -234,7 +234,7 @@ export class LyftApiClient extends BaseApiClient {
     });
 
     // Add location and region headers
-    const coords = location || { lat: 40.740878653781294, lon: -73.98169477059979 };
+    const coords = location || MAP_CONSTANTS.DEFAULT_CENTER;
     headers['x-location'] = `${coords.lat},${coords.lon}`;
     headers['x-lyft-region'] = 'BKN'; // Brooklyn region for NYC
 
@@ -296,7 +296,6 @@ export class LyftApiClient extends BaseApiClient {
       },
       server_actions: {},
       show_edu_in_panel: false,
-      show_points_on_map: false,
     };
 
     const response = await this.post<Record<string, unknown>>(
@@ -318,7 +317,8 @@ export class LyftApiClient extends BaseApiClient {
       xSession: this.sessionInfo.xSession,
     });
 
-    headers['x-location'] = '40.7407,-73.9818'; // Default NYC location
+    headers['x-location'] =
+      `${MAP_CONSTANTS.DEFAULT_CENTER.lat},${MAP_CONSTANTS.DEFAULT_CENTER.lon}`; // Default NYC location
     headers['x-idl-source'] = 'pb.api.endpoints.v1.passenger.ReadPassengerUserRequest';
     headers['accept'] = 'application/x-protobuf,application/json';
 
@@ -340,7 +340,8 @@ export class LyftApiClient extends BaseApiClient {
       isJson: true,
     });
 
-    headers['x-location'] = '40.7407,-73.9818'; // Default NYC location
+    headers['x-location'] =
+      `${MAP_CONSTANTS.DEFAULT_CENTER.lat},${MAP_CONSTANTS.DEFAULT_CENTER.lon}`; // Default NYC location
     headers['x-idl-source'] = 'pb.api.endpoints.v1.subscriptions.ReadSubscriptionsRequest';
 
     const response = await this.get<Record<string, unknown>>(LYFT_ENDPOINTS.USER.SUBSCRIPTIONS, {
@@ -367,7 +368,7 @@ export class LyftApiClient extends BaseApiClient {
     });
 
     // Add location and region headers
-    const coords = location || { lat: 40.740687723095874, lon: -73.98187369930338 };
+    const coords = location || MAP_CONSTANTS.DEFAULT_CENTER;
     headers['x-location'] = `${coords.lat},${coords.lon}`;
     headers['x-lyft-region'] = 'BKN'; // Brooklyn region for NYC
     headers['x-capture-path-template'] = '/v1/last-mile/ride-history/{ride_id}';
@@ -406,7 +407,8 @@ export class LyftApiClient extends BaseApiClient {
     });
 
     // Add location and region headers
-    headers['x-location'] = '40.7407,-73.9818'; // NYC coordinates
+    headers['x-location'] =
+      `${MAP_CONSTANTS.DEFAULT_CENTER.lat},${MAP_CONSTANTS.DEFAULT_CENTER.lon}`; // NYC coordinates
     headers['x-lyft-region'] = 'BKN'; // Brooklyn region for NYC
 
     // Build request body

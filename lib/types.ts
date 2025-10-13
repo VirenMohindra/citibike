@@ -315,6 +315,68 @@ export interface BikeAngelReward {
   expiresAt?: Date;
 }
 
+// Lyft Map Items API Types (for Bike Angel station rewards)
+export interface RewardBadge {
+  color: number;
+  hide_points_at_neighboorhood_zoom: boolean;
+  icon: {
+    core_icon_v1?: number;
+    new_icon_v1?: number;
+  };
+  icon_rotation: number;
+  points: string;
+  style: number;
+}
+
+export interface TextSpecificItem {
+  icon: {
+    core_icon_v1?: number;
+    new_icon_v1?: number;
+  };
+  text: string;
+}
+
+export interface StationMapItem {
+  device: {
+    id: string;
+    type: number;
+  };
+  location: {
+    lat: number;
+    lng: number;
+    display_lat?: number;
+    display_lng?: number;
+    place_provider?: number;
+    placesearch_provider?: number;
+    spot_place_provider?: number;
+  };
+  collapsible_collection_bubble?: {
+    selected_detailed_text_specific_pin?: {
+      background_color_primary: number;
+      background_color_secondary: number;
+      icon_color: number;
+      is_clickable: boolean;
+      text_color: number;
+      text_specific_items: TextSpecificItem[];
+      reward_badge?: RewardBadge;
+    };
+  };
+}
+
+export interface MapItemsResponse {
+  map_items: StationMapItem[];
+  notices: unknown[];
+  request_errors: unknown[];
+}
+
+// Simplified station reward for our app
+export interface StationReward {
+  stationId: string;
+  points: number;
+  numBikesAvailable: number;
+  numDocksAvailable: number;
+}
+
 export interface BikeAngelCache {
   data: BikeAngelProfile | null;
   lastFetched: number | null;
@@ -322,6 +384,7 @@ export interface BikeAngelCache {
 }
 
 export interface AppState {
+  currentCity: string; // City ID (e.g., 'nyc', 'dc')
   startStation: StationWithStatus | null;
   endStation: StationWithStatus | null;
   waypoints: StationWithStatus[];
@@ -335,6 +398,8 @@ export interface AppState {
   syncState: SyncState;
   bikeAngelCache: BikeAngelCache;
   distanceUnit: 'miles' | 'km';
+  showBikeAngelRewards: boolean;
+  setCurrentCity: (cityId: string) => void;
   setStartStation: (station: StationWithStatus | null) => void;
   setEndStation: (station: StationWithStatus | null) => void;
   addWaypoint: (station: StationWithStatus) => void;
@@ -355,4 +420,5 @@ export interface AppState {
   setSyncState: (state: Partial<SyncState>) => void;
   setBikeAngelCache: (cache: Partial<BikeAngelCache>) => void;
   setDistanceUnit: (unit: 'miles' | 'km') => void;
+  setShowBikeAngelRewards: (show: boolean) => void;
 }

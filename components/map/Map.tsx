@@ -7,13 +7,14 @@ import type { StationWithStatus } from '@/lib/types';
 import { useAppStore } from '@/lib/store';
 import { useI18n } from '@/lib/i18n';
 import { useTheme } from '@/lib/theme-context';
+import { useCity } from '@/lib/hooks/useCity';
 import {
-  COMMON_MAP_OPTIONS,
   CLUSTER_OPTIONS,
-  getMapboxStyle,
-  getDirectionsUrl,
+  COMMON_MAP_OPTIONS,
   FIT_BOUNDS_OPTIONS,
   FLY_TO_OPTIONS,
+  getDirectionsUrl,
+  getMapboxStyle,
 } from '@/config/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -41,12 +42,14 @@ type ClusterPoint = {
     type: 'Point';
     coordinates: [number, number];
   };
+  id?: number;
 };
 
 export default function MapComponent(props: MapProps = { stations: [], routeProfile: 'fastest' }) {
   const { stations = [], routeProfile = 'fastest' } = props || {};
   const { t } = useI18n();
   const { resolvedTheme } = useTheme();
+  const { cityConfig } = useCity();
 
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -54,8 +57,9 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
   const sharedPopup = useRef<mapboxgl.Popup | null>(null);
   const supercluster = useRef<Supercluster | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [zoom, setZoom] = useState(12);
+  const [zoom, setZoom] = useState(cityConfig.defaultZoom);
   const [bounds, setBounds] = useState<mapboxgl.LngLatBounds | null>(null);
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lon: number }>(cityConfig.mapCenter);
   const [initialPositionSet, setInitialPositionSet] = useState(false);
   const userLocationMarker = useRef<mapboxgl.Marker | null>(null);
 
@@ -160,10 +164,17 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
 
     const mapStyle = getMapboxStyle(resolvedTheme === 'dark' ? 'dark' : 'light');
 
+    // Convert city maxBounds to Mapbox format
+    const maxBounds: mapboxgl.LngLatBoundsLike = [
+      [cityConfig.maxBounds[0], cityConfig.maxBounds[1]], // Southwest
+      [cityConfig.maxBounds[2], cityConfig.maxBounds[3]], // Northeast
+    ];
+
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: mapStyle,
       ...COMMON_MAP_OPTIONS,
+      maxBounds, // Apply city-specific bounds
     });
 
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
@@ -219,6 +230,8 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
       if (map.current) {
         setBounds(map.current.getBounds());
         setZoom(map.current.getZoom());
+        const center = map.current.getCenter();
+        setMapCenter({ lat: center.lat, lon: center.lng });
       }
     });
 
@@ -257,7 +270,27 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
     }
   }, [resolvedTheme, mapLoaded]);
 
-  // Geolocation + fallback to 26th & 3rd Ave station
+  // Reset map position and bounds when city changes
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+
+    // Update maxBounds for the new city
+    const maxBounds: mapboxgl.LngLatBoundsLike = [
+      [cityConfig.maxBounds[0], cityConfig.maxBounds[1]], // Southwest
+      [cityConfig.maxBounds[2], cityConfig.maxBounds[3]], // Northeast
+    ];
+    map.current.setMaxBounds(maxBounds);
+
+    // Fly to new city center
+    map.current.flyTo({
+      center: [cityConfig.mapCenter.lon, cityConfig.mapCenter.lat],
+      zoom: cityConfig.defaultZoom,
+      duration: 1000,
+    });
+    setInitialPositionSet(false);
+  }, [cityConfig, mapLoaded]);
+
+  // Geolocation + fallback to city center
   useEffect(() => {
     if (!mapLoaded || !map.current || initialPositionSet || stations.length === 0) return;
 
@@ -266,61 +299,71 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
         (position) => {
           const coords: [number, number] = [position.coords.longitude, position.coords.latitude];
 
+          // Check if user location is within city bounds
+          const [west, south, east, north] = cityConfig.maxBounds;
+          const isWithinBounds =
+            coords[0] >= west && coords[0] <= east && coords[1] >= south && coords[1] <= north;
+
           if (map.current) {
-            // Add user location marker
-            if (userLocationMarker.current) {
-              userLocationMarker.current.remove();
+            if (isWithinBounds) {
+              // User is in the selected city - use their location
+              // Add user location marker
+              if (userLocationMarker.current) {
+                userLocationMarker.current.remove();
+              }
+
+              const el = document.createElement('div');
+              el.className = 'user-location-marker';
+              el.style.width = '20px';
+              el.style.height = '20px';
+              el.style.borderRadius = '50%';
+              el.style.backgroundColor = '#4F46E5';
+              el.style.border = '3px solid white';
+              el.style.boxShadow =
+                '0 0 0 1px rgba(79, 70, 229, 0.3), 0 0 10px rgba(79, 70, 229, 0.5)';
+              el.style.zIndex = '1';
+
+              userLocationMarker.current = new mapboxgl.Marker(el)
+                .setLngLat(coords)
+                .addTo(map.current);
+
+              // Set z-index on the actual marker container
+              const markerElement = userLocationMarker.current.getElement();
+              if (markerElement) {
+                markerElement.style.zIndex = '1';
+              }
+
+              map.current.flyTo({
+                center: coords,
+                ...FLY_TO_OPTIONS,
+              });
+              console.log('📍 Using user location:', coords);
+            } else {
+              // User is outside selected city - use city center instead
+              map.current.flyTo({
+                ...FLY_TO_OPTIONS,
+                center: [cityConfig.mapCenter.lon, cityConfig.mapCenter.lat],
+                zoom: cityConfig.defaultZoom,
+              });
+              console.log(
+                '📍 User location outside city bounds, using city center:',
+                cityConfig.mapCenter
+              );
             }
-
-            const el = document.createElement('div');
-            el.className = 'user-location-marker';
-            el.style.width = '20px';
-            el.style.height = '20px';
-            el.style.borderRadius = '50%';
-            el.style.backgroundColor = '#4F46E5';
-            el.style.border = '3px solid white';
-            el.style.boxShadow =
-              '0 0 0 1px rgba(79, 70, 229, 0.3), 0 0 10px rgba(79, 70, 229, 0.5)';
-            el.style.zIndex = '1';
-
-            userLocationMarker.current = new mapboxgl.Marker(el)
-              .setLngLat(coords)
-              .addTo(map.current);
-
-            // Set z-index on the actual marker container
-            const markerElement = userLocationMarker.current.getElement();
-            if (markerElement) {
-              markerElement.style.zIndex = '1';
-            }
-
-            map.current.flyTo({
-              center: coords,
-              ...FLY_TO_OPTIONS,
-            });
-            console.log('📍 Using user location:', coords);
           }
           setInitialPositionSet(true);
         },
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         (_error) => {
-          console.log('📍 Geolocation denied/failed, using default station');
+          console.log('📍 Geolocation denied/failed, using city center');
 
-          const defaultStation = stations.find(
-            (s) =>
-              (s.name.toLowerCase().includes('26') && s.name.toLowerCase().includes('3 ave')) ||
-              (s.name.toLowerCase().includes('e 26') && s.name.toLowerCase().includes('3')) ||
-              s.name.toLowerCase().includes('26 st & 3 ave')
-          );
-
-          if (defaultStation && map.current) {
+          if (map.current) {
             map.current.flyTo({
-              center: [defaultStation.lon, defaultStation.lat],
               ...FLY_TO_OPTIONS,
+              center: [cityConfig.mapCenter.lon, cityConfig.mapCenter.lat],
+              zoom: cityConfig.defaultZoom,
             });
-            console.log('📍 Using default station:', defaultStation.name, [
-              defaultStation.lon,
-              defaultStation.lat,
-            ]);
+            console.log('📍 Using city center:', cityConfig.mapCenter);
           }
           setInitialPositionSet(true);
         },
@@ -331,28 +374,24 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
         }
       );
     } else {
-      const defaultStation = stations.find(
-        (s) => s.name.toLowerCase().includes('26') && s.name.toLowerCase().includes('3 ave')
-      );
-
-      if (defaultStation && map.current) {
+      if (map.current) {
         map.current.flyTo({
-          center: [defaultStation.lon, defaultStation.lat],
           ...FLY_TO_OPTIONS,
+          center: [cityConfig.mapCenter.lon, cityConfig.mapCenter.lat],
+          zoom: cityConfig.defaultZoom,
         });
-        console.log('📍 No geolocation support, using default station:', defaultStation.name);
+        console.log('📍 No geolocation support, using city center');
       }
       setInitialPositionSet(true);
     }
-  }, [mapLoaded, stations, initialPositionSet]);
+  }, [mapLoaded, stations, initialPositionSet, cityConfig]);
 
-  // Render clusters and individual points
+  // Render clusters and individual points - only runs when viewport changes
   useEffect(() => {
     if (!map.current || !mapLoaded || clustersAndPoints.length === 0) return;
 
-    // Get current marker IDs
+    // Get current marker IDs that should be visible
     const currentIds = new Set<string>();
-    const clusterMarkers = new Set<string>();
 
     clustersAndPoints.forEach((feature) => {
       const [lng, lat] = feature.geometry.coordinates;
@@ -362,25 +401,11 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
         // Cluster marker
         const clusterId = `cluster-${feature.id}`;
         currentIds.add(clusterId);
-        clusterMarkers.add(clusterId);
 
         if (!markers.current.has(clusterId)) {
-          // Create cluster marker
+          // Create NEW cluster marker
           const el = document.createElement('div');
           el.className = 'cluster-marker';
-          el.style.width = '40px';
-          el.style.height = '40px';
-          el.style.borderRadius = '50%';
-          el.style.backgroundColor = '#3B82F6';
-          el.style.border = '3px solid white';
-          el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
-          el.style.cursor = 'pointer';
-          el.style.display = 'flex';
-          el.style.alignItems = 'center';
-          el.style.justifyContent = 'center';
-          el.style.color = 'white';
-          el.style.fontWeight = 'bold';
-          el.style.fontSize = '14px';
           el.textContent = props.point_count?.toString() || '0';
 
           el.addEventListener('click', () => {
@@ -397,7 +422,12 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
             }
           });
 
-          const marker = new mapboxgl.Marker(el).setLngLat([lng, lat]).addTo(map.current!);
+          const marker = new mapboxgl.Marker({
+            element: el,
+            anchor: 'center',
+          })
+            .setLngLat([lng, lat])
+            .addTo(map.current!);
 
           markers.current.set(clusterId, {
             marker,
@@ -473,7 +503,6 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
 
           el.addEventListener('mouseenter', () => {
             setHoveredStation(station.station_id);
-
             if (sharedPopup.current && map.current) {
               sharedPopup.current
                 .setLngLat([station.lon, station.lat])
@@ -489,7 +518,6 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
 
           el.addEventListener('click', (e) => {
             e.stopPropagation();
-
             if (!startStation) {
               setStartStation(station);
             } else if (!endStation && station.station_id !== startStation.station_id) {
@@ -571,6 +599,7 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
       }
     });
 
+    // Log marker statistics
     const clusterCount = Array.from(currentIds).filter((id) => id.startsWith('cluster-')).length;
     const stationCount = Array.from(currentIds).filter((id) => id.startsWith('station-')).length;
     console.log(
@@ -578,16 +607,16 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
     );
   }, [
     clustersAndPoints,
-    startStation,
-    endStation,
-    waypoints,
     mapLoaded,
-    zoom,
-    getMarkerColor,
     generatePopupHTML,
     setHoveredStation,
     setStartStation,
     setEndStation,
+    startStation,
+    endStation,
+    waypoints,
+    getMarkerColor,
+    zoom,
   ]);
 
   // Handle hover state updates separately
@@ -658,7 +687,7 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
       });
       coordinates += `;${endStation.lon},${endStation.lat}`;
 
-      // Fetch route from Mapbox Directions API with instructions
+      // Fetch route from Mapbox Directions API
       const directionsUrl = getDirectionsUrl(routingProfile as 'cycling' | 'walking', coordinates, {
         exclude: exclude.replace('&exclude=', ''),
       });

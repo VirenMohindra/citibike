@@ -9,14 +9,14 @@ import type {
   Station,
   StationStatus,
 } from './types';
-
-const GBFS_BASE_URL = 'https://gbfs.citibikenyc.com/gbfs/en';
+import { buildCityGbfsUrl, DEFAULT_CITY_ID } from '@/config/cities';
 
 /**
  * Fetches station information from the GBFS API
  */
-export async function fetchStationInformation(): Promise<Station[]> {
-  const response = await fetch(`${GBFS_BASE_URL}/station_information.json`, {
+export async function fetchStationInformation(cityId: string = DEFAULT_CITY_ID): Promise<Station[]> {
+  const url = buildCityGbfsUrl(cityId, '/station_information.json');
+  const response = await fetch(url, {
     next: { revalidate: 60 }, // Revalidate every 60 seconds
   });
 
@@ -31,8 +31,9 @@ export async function fetchStationInformation(): Promise<Station[]> {
 /**
  * Fetches real-time station status from the GBFS API
  */
-export async function fetchStationStatus(): Promise<StationStatus[]> {
-  const response = await fetch(`${GBFS_BASE_URL}/station_status.json`, {
+export async function fetchStationStatus(cityId: string = DEFAULT_CITY_ID): Promise<StationStatus[]> {
+  const url = buildCityGbfsUrl(cityId, '/station_status.json');
+  const response = await fetch(url, {
     next: { revalidate: 30 }, // Revalidate every 30 seconds (more frequent for real-time data)
   });
 
@@ -47,8 +48,9 @@ export async function fetchStationStatus(): Promise<StationStatus[]> {
 /**
  * Fetches system information from the GBFS API
  */
-export async function fetchSystemInformation(): Promise<SystemInformation> {
-  const response = await fetch(`${GBFS_BASE_URL}/system_information.json`, {
+export async function fetchSystemInformation(cityId: string = DEFAULT_CITY_ID): Promise<SystemInformation> {
+  const url = buildCityGbfsUrl(cityId, '/system_information.json');
+  const response = await fetch(url, {
     next: { revalidate: 3600 }, // Revalidate every hour (rarely changes)
   });
 
@@ -63,8 +65,9 @@ export async function fetchSystemInformation(): Promise<SystemInformation> {
 /**
  * Fetches system regions from the GBFS API
  */
-export async function fetchSystemRegions(): Promise<SystemRegions> {
-  const response = await fetch(`${GBFS_BASE_URL}/system_regions.json`, {
+export async function fetchSystemRegions(cityId: string = DEFAULT_CITY_ID): Promise<SystemRegions> {
+  const url = buildCityGbfsUrl(cityId, '/system_regions.json');
+  const response = await fetch(url, {
     next: { revalidate: 3600 }, // Revalidate every hour
   });
 
@@ -102,11 +105,11 @@ export function mergeStationData(
 /**
  * Fetches and merges station information with status
  */
-export async function fetchStationsWithStatus(): Promise<StationWithStatus[]> {
+export async function fetchStationsWithStatus(cityId: string = DEFAULT_CITY_ID): Promise<StationWithStatus[]> {
   try {
     const [stations, statuses] = await Promise.all([
-      fetchStationInformation(),
-      fetchStationStatus(),
+      fetchStationInformation(cityId),
+      fetchStationStatus(cityId),
     ]);
 
     return mergeStationData(stations, statuses);

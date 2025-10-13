@@ -21,12 +21,16 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 function HomeContent() {
   const { t } = useI18n();
-  const { startStation, endStation } = useAppStore();
+  const { startStation, endStation, currentCity } = useAppStore();
   const [mounted, setMounted] = useState(false);
   const [mobileRouteOpen, setMobileRouteOpen] = useState(false);
   const [showShareToast, setShowShareToast] = useState(false);
   const [routeProfile, setRouteProfile] = useState<RouteProfile>('fastest');
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
+
+  // Build API URLs with city parameter
+  const stationInfoUrl = `${API_ROUTES.STATIONS.INFO}?city=${currentCity}`;
+  const stationStatusUrl = `${API_ROUTES.STATIONS.STATUS}?city=${currentCity}`;
 
   // Fetch static station information (cached for 24 hours)
   const { data: stationInfoData, error: infoError } = useSWR<{
@@ -36,7 +40,7 @@ function HomeContent() {
     last_updated: number;
     ttl: number;
     version: string;
-  }>(API_ROUTES.STATIONS.INFO, fetcher, {
+  }>(stationInfoUrl, fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     refreshInterval: 0, // No auto-refresh - static data
@@ -51,7 +55,7 @@ function HomeContent() {
     last_updated: number;
     ttl: number;
     version: string;
-  }>(API_ROUTES.STATIONS.STATUS, fetcher, {
+  }>(stationStatusUrl, fetcher, {
     refreshInterval: 30000, // Refresh every 30 seconds
     revalidateOnFocus: true,
   });

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getLyftClient } from '@/lib/api/lyft-client';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,46 +22,6 @@ export async function GET(request: NextRequest) {
     // Use the Lyft client to fetch Bike Angel profile
     const lyftClient = getLyftClient();
     const bikeAngelData = await lyftClient.getBikeAngelProfile(accessToken, location);
-
-    // Log response type for debugging
-    const responseAnalysis = {
-      timestamp: new Date().toISOString(),
-      hasNumericKeys: Object.keys(bikeAngelData).some((k) => !isNaN(Number(k))),
-      hasLabeledKeys: Object.keys(bikeAngelData).some((k) => isNaN(Number(k))),
-      totalKeys: Object.keys(bikeAngelData).length,
-      keys: Object.keys(bikeAngelData).slice(0, 20),
-      sampleData: JSON.stringify(bikeAngelData, null, 2),
-    };
-
-    console.log('Bike Angel API response type:', responseAnalysis);
-
-    // Write detailed logs to file for analysis
-    try {
-      const logPath = join('/tmp', 'citibike-logs', 'bike-angel-api.log');
-      const logContent = `
-========================================
-Bike Angel API Response
-Time: ${responseAnalysis.timestamp}
-========================================
-
-Response Analysis:
-- Has Numeric Keys (Protobuf): ${responseAnalysis.hasNumericKeys}
-- Has Labeled Keys (JSON): ${responseAnalysis.hasLabeledKeys}
-- Total Keys: ${responseAnalysis.totalKeys}
-
-First 20 Keys:
-${responseAnalysis.keys.join(', ')}
-
-Full Response Data:
-${responseAnalysis.sampleData}
-
-========================================
-`;
-      await writeFile(logPath, logContent, { flag: 'a' });
-      console.log('✅ Bike Angel response logged to:', logPath);
-    } catch (logError) {
-      console.error('Failed to write log file:', logError);
-    }
 
     return NextResponse.json({
       success: true,

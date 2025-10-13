@@ -15,6 +15,9 @@ export * from './routes';
 // Export environment utilities
 export * from './environment';
 
+// Export city configuration
+export * from './cities';
+
 // ============================================
 // Quick Access Exports
 // ============================================

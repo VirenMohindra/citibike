@@ -59,7 +59,8 @@ export const AUTH_CONSTANTS = {
 // Map Configuration
 // ============================================
 export const MAP_CONSTANTS = {
-  DEFAULT_CENTER: { lat: 40.7128, lng: -73.9352 } as const,
+  // NYC geographic center (near Union Square)
+  DEFAULT_CENTER: { lat: 40.7407, lon: -73.9818 } as const,
   DEFAULT_ZOOM: 13,
   MIN_ZOOM: 10,
   MAX_ZOOM: 18,

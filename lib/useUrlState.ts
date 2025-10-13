@@ -5,6 +5,7 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useAppStore } from '@/lib/store';
 import type { StationWithStatus } from '@/lib/types';
 import { getStationSlug, findStationBySlug } from '@/lib/station-utils';
+import { isValidCityId } from '@/config/cities';
 
 /**
  * Custom hook to synchronize app state with URL
@@ -23,11 +24,19 @@ export function useUrlState(stations: StationWithStatus[]) {
     setEndStation,
     selectedStation,
     setSelectedStation,
+    currentCity,
+    setCurrentCity,
   } = useAppStore();
 
-  // Update URL when stations change
+  // Update URL when stations or city change
   const updateUrl = useCallback(() => {
     const params = new URLSearchParams();
+
+    // Always include city in URL (for shareability)
+    if (currentCity && currentCity !== 'nyc') {
+      // Only add city param if it's not the default (NYC)
+      params.set('city', currentCity);
+    }
 
     if (startStation) {
       // Use human-readable slug instead of UUID
@@ -48,11 +57,20 @@ export function useUrlState(stations: StationWithStatus[]) {
 
     // Use replace to avoid adding to history on every station selection
     router.replace(url, { scroll: false });
-  }, [startStation, endStation, selectedStation, pathname, router]);
+  }, [startStation, endStation, selectedStation, currentCity, pathname, router]);
 
   // Load state from URL on mount (only once)
   const loadFromUrl = useCallback(() => {
-    if (stations.length === 0 || hasLoadedFromUrl.current) return;
+    if (hasLoadedFromUrl.current) return;
+
+    // Load city from URL first (before stations are available)
+    const cityFromUrl = searchParams.get('city');
+    if (cityFromUrl && isValidCityId(cityFromUrl) && cityFromUrl !== currentCity) {
+      setCurrentCity(cityFromUrl);
+    }
+
+    // Load stations only after stations data is available
+    if (stations.length === 0) return;
 
     const fromSlug = searchParams.get('from');
     const toSlug = searchParams.get('to');
@@ -79,14 +97,16 @@ export function useUrlState(stations: StationWithStatus[]) {
     }
 
     hasLoadedFromUrl.current = true;
-  }, [stations, searchParams, setStartStation, setEndStation, setSelectedStation]);
+  }, [stations, searchParams, setStartStation, setEndStation, setSelectedStation, currentCity, setCurrentCity]);
 
   // Effect to update URL when state changes
   useEffect(() => {
-    if (stations.length > 0) {
+    // Update URL whenever city changes (even before stations load)
+    // or when stations are available and other state changes
+    if (currentCity || stations.length > 0) {
       updateUrl();
     }
-  }, [startStation, endStation, selectedStation, updateUrl, stations.length]);
+  }, [startStation, endStation, selectedStation, currentCity, updateUrl, stations.length]);
 
   // Effect to load from URL on mount
   useEffect(() => {
@@ -96,6 +116,11 @@ export function useUrlState(stations: StationWithStatus[]) {
   // Function to generate shareable link
   const getShareableLink = useCallback(() => {
     const params = new URLSearchParams();
+
+    // Include city in shareable link (if not default)
+    if (currentCity && currentCity !== 'nyc') {
+      params.set('city', currentCity);
+    }
 
     if (startStation) {
       // Use human-readable slug instead of UUID
@@ -111,7 +136,7 @@ export function useUrlState(stations: StationWithStatus[]) {
       typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}` : '';
 
     return `${baseUrl}${pathname}?${params.toString()}`;
-  }, [startStation, endStation, pathname]);
+  }, [startStation, endStation, currentCity, pathname]);
 
   // Function to copy link to clipboard
   const copyLinkToClipboard = useCallback(async () => {

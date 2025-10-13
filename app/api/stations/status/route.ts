@@ -4,11 +4,15 @@
  */
 
 import { NextResponse } from 'next/server';
-import { buildGbfsUrl, GBFS_ENDPOINTS } from '@/config/api';
+import { buildCityGbfsUrl, DEFAULT_CITY_ID } from '@/config/cities';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const url = buildGbfsUrl(GBFS_ENDPOINTS.STATION_STATUS);
+    // Get city from query parameter, default to NYC
+    const { searchParams } = new URL(request.url);
+    const cityId = searchParams.get('city') || DEFAULT_CITY_ID;
+
+    const url = buildCityGbfsUrl(cityId, '/station_status.json');
 
     const response = await fetch(url, {
       next: {
