@@ -373,6 +373,8 @@ export interface MapItemsResponse {
 export interface StationReward {
   stationId: string;
   points: number;
+  pickupPoints?: number; // Points for picking up a bike (⬆️)
+  dropoffPoints?: number; // Points for dropping off a bike (⬇️)
   numBikesAvailable: number;
   numDocksAvailable: number;
 }
@@ -392,6 +394,9 @@ export interface AppState {
   hoveredStation: string | null;
   selectedStation: string | null;
   mapBounds: MapBounds | null;
+  mapCenter: { lat: number; lon: number } | null;
+  mapZoom: number | null;
+  showVisibleOnly: boolean;
   favoriteStations: string[];
   savedRoutes: SavedRoute[];
   citibikeUser: CitibikeUser | null;
@@ -410,6 +415,9 @@ export interface AppState {
   setHoveredStation: (stationId: string | null) => void;
   setSelectedStation: (stationId: string | null) => void;
   setMapBounds: (bounds: MapBounds | null) => void;
+  setMapCenter: (center: { lat: number; lon: number } | null) => void;
+  setMapZoom: (zoom: number | null) => void;
+  setShowVisibleOnly: (show: boolean) => void;
   clearRoute: () => void;
   toggleFavorite: (stationId: string) => void;
   isFavorite: (stationId: string) => boolean;

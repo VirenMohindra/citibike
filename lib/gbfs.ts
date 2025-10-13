@@ -14,7 +14,9 @@ import { buildCityGbfsUrl, DEFAULT_CITY_ID } from '@/config/cities';
 /**
  * Fetches station information from the GBFS API
  */
-export async function fetchStationInformation(cityId: string = DEFAULT_CITY_ID): Promise<Station[]> {
+export async function fetchStationInformation(
+  cityId: string = DEFAULT_CITY_ID
+): Promise<Station[]> {
   const url = buildCityGbfsUrl(cityId, '/station_information.json');
   const response = await fetch(url, {
     next: { revalidate: 60 }, // Revalidate every 60 seconds
@@ -31,7 +33,9 @@ export async function fetchStationInformation(cityId: string = DEFAULT_CITY_ID):
 /**
  * Fetches real-time station status from the GBFS API
  */
-export async function fetchStationStatus(cityId: string = DEFAULT_CITY_ID): Promise<StationStatus[]> {
+export async function fetchStationStatus(
+  cityId: string = DEFAULT_CITY_ID
+): Promise<StationStatus[]> {
   const url = buildCityGbfsUrl(cityId, '/station_status.json');
   const response = await fetch(url, {
     next: { revalidate: 30 }, // Revalidate every 30 seconds (more frequent for real-time data)
@@ -48,7 +52,9 @@ export async function fetchStationStatus(cityId: string = DEFAULT_CITY_ID): Prom
 /**
  * Fetches system information from the GBFS API
  */
-export async function fetchSystemInformation(cityId: string = DEFAULT_CITY_ID): Promise<SystemInformation> {
+export async function fetchSystemInformation(
+  cityId: string = DEFAULT_CITY_ID
+): Promise<SystemInformation> {
   const url = buildCityGbfsUrl(cityId, '/system_information.json');
   const response = await fetch(url, {
     next: { revalidate: 3600 }, // Revalidate every hour (rarely changes)
@@ -105,7 +111,9 @@ export function mergeStationData(
 /**
  * Fetches and merges station information with status
  */
-export async function fetchStationsWithStatus(cityId: string = DEFAULT_CITY_ID): Promise<StationWithStatus[]> {
+export async function fetchStationsWithStatus(
+  cityId: string = DEFAULT_CITY_ID
+): Promise<StationWithStatus[]> {
   try {
     const [stations, statuses] = await Promise.all([
       fetchStationInformation(cityId),

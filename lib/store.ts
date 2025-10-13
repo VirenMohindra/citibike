@@ -14,6 +14,9 @@ export const useAppStore = create<AppState>()(
       hoveredStation: null,
       selectedStation: null,
       mapBounds: null,
+      mapCenter: null,
+      mapZoom: null,
+      showVisibleOnly: false,
       favoriteStations: [],
       savedRoutes: [],
       citibikeUser: null,
@@ -70,6 +73,9 @@ export const useAppStore = create<AppState>()(
       setHoveredStation: (stationId) => set({ hoveredStation: stationId }),
       setSelectedStation: (stationId) => set({ selectedStation: stationId }),
       setMapBounds: (bounds) => set({ mapBounds: bounds }),
+      setMapCenter: (center) => set({ mapCenter: center }),
+      setMapZoom: (zoom) => set({ mapZoom: zoom }),
+      setShowVisibleOnly: (show) => set({ showVisibleOnly: show }),
 
       clearRoute: () =>
         set({

@@ -1,0 +1,127 @@
+/* ===== Progressive Disclosure Map Markers ===== */
+/* Single container holds all three view types - CSS toggles visibility */
+
+/* Marker Container */
+.marker-container {
+  box-sizing: border-box;
+  /* Let Mapbox handle all positioning - no manual sizing */
+  /* CRITICAL: NO transitions or animations on container - causes floating markers */
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
+    'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Marker Views (children of container) */
+.marker-view {
+  box-sizing: border-box;
+  /* Simple block elements - no absolute positioning */
+  /* CRITICAL: NO transitions or animations on view - causes floating markers */
+}
+
+/* Show/hide views based on container's marker type */
+/* Use visibility to keep layout stable - all views take up space but only one is visible */
+
+/* Simple view visible when container has marker-simple class */
+.marker-container.marker-simple .marker-view.marker-simple {
+  visibility: visible;
+  pointer-events: auto;
+}
+.marker-container.marker-simple .marker-view.marker-compact {
+  visibility: hidden;
+  pointer-events: none;
+}
+.marker-container.marker-simple .marker-view.marker-detailed {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Compact view visible when container has marker-compact class */
+.marker-container.marker-compact .marker-view.marker-simple {
+  visibility: hidden;
+  pointer-events: none;
+}
+.marker-container.marker-compact .marker-view.marker-compact {
+  visibility: visible;
+  pointer-events: auto;
+}
+.marker-container.marker-compact .marker-view.marker-detailed {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Detailed view visible when container has marker-detailed class */
+.marker-container.marker-detailed .marker-view.marker-simple {
+  visibility: hidden;
+  pointer-events: none;
+}
+.marker-container.marker-detailed .marker-view.marker-compact {
+  visibility: hidden;
+  pointer-events: none;
+}
+.marker-container.marker-detailed .marker-view.marker-detailed {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Hover effects - CRITICAL: Keep effects minimal to avoid layout changes */
+.marker-view.marker-simple:hover {
+  filter: brightness(1.1) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
+}
+
+.marker-view.marker-compact.marker-info:hover {
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.2),
+    0 3px 8px rgba(0, 0, 0, 0.12) !important;
+  filter: brightness(1.02);
+}
+
+.marker-view.marker-compact.marker-route:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+  filter: brightness(1.1);
+}
+
+.marker-view.marker-detailed.marker-info:hover {
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.18),
+    0 6px 12px rgba(0, 0, 0, 0.1) !important;
+  filter: brightness(1.02);
+}
+
+.marker-view.marker-detailed.marker-route:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4) !important;
+  filter: brightness(1.1);
+}
+
+/* ===== Bike Count Display ===== */
+.bike-count {
+  /* Large bike count number in compact/detailed markers */
+  user-select: none;
+  pointer-events: none;
+  line-height: 1;
+}
+
+/* ===== User Location Marker ===== */
+.user-location-marker {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #4f46e5; /* indigo-600 */
+  border: 3px solid white;
+  box-shadow:
+    0 0 0 1px rgba(79, 70, 229, 0.3),
+    0 0 10px rgba(79, 70, 229, 0.5);
+  box-sizing: border-box;
+}
+
+/* ===== Dark Mode Support ===== */
+@media (prefers-color-scheme: dark) {
+  .marker-compact.marker-info,
+  .marker-detailed.marker-info {
+    background-color: rgba(31, 41, 55, 0.95); /* gray-800 with transparency */
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .bike-count {
+    color: #f9fafb; /* gray-50 */
+  }
+}

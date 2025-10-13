@@ -137,10 +137,11 @@ export const FLY_TO_OPTIONS = {
 
 /**
  * Supercluster configuration for station markers
+ * maxZoom set to 12 so clusters disappear before progressive disclosure kicks in at zoom 13
  */
 export const CLUSTER_OPTIONS = {
   radius: 60, // Cluster radius in pixels
-  maxZoom: 16, // Max zoom to cluster points on
+  maxZoom: 12, // Max zoom to cluster points on (clusters end before progressive disclosure starts)
   minZoom: 0,
   minPoints: 3, // Minimum points to form a cluster
 };
