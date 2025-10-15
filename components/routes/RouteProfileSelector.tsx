@@ -103,9 +103,7 @@ export function RouteProfileSelector({ onProfileChange }: RouteProfileSelectorPr
   const isDisabled = !startStation || !endStation;
 
   return (
-    <div
-      className={`p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 ${isDisabled ? 'opacity-50' : ''}`}
-    >
+    <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
       <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
         {t('routeProfile.title')}
       </h3>
@@ -117,11 +115,11 @@ export function RouteProfileSelector({ onProfileChange }: RouteProfileSelectorPr
             disabled={isDisabled}
             className={`
               relative p-3 rounded-lg border-2 transition-all
-              ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}
+              ${isDisabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}
               ${
                 selectedProfile === profile.id
                   ? `${profile.bgColor} dark:${profile.bgColor.replace('50', '900/30')} ${profile.selectedBorder} ${profile.color}`
-                  : `bg-white dark:bg-gray-800 ${profile.borderColor} dark:${profile.borderColor.replace('200', '700')} ${!isDisabled ? `hover:${profile.bgColor}` : ''} text-gray-700 dark:text-gray-300 ${!isDisabled ? `hover:${profile.color}` : ''}`
+                  : `bg-white dark:bg-gray-800 ${profile.borderColor} dark:${profile.borderColor.replace('200', '700')} ${!isDisabled ? `hover:${profile.bgColor}` : ''} text-gray-800 dark:text-gray-200 ${!isDisabled ? `hover:${profile.color}` : ''}`
               }
             `}
             title={profile.description}
@@ -142,7 +140,9 @@ export function RouteProfileSelector({ onProfileChange }: RouteProfileSelectorPr
           </button>
         ))}
       </div>
-      <p className="mt-2 text-xs text-gray-600 dark:text-gray-400 text-center">
+      <p
+        className={`mt-2 text-xs text-center ${isDisabled ? 'text-gray-700 dark:text-gray-300' : 'text-gray-600 dark:text-gray-400'}`}
+      >
         {isDisabled
           ? t('routeProfile.selectStations')
           : profiles.find((p) => p.id === selectedProfile)?.description}
