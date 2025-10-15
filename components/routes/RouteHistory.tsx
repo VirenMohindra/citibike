@@ -56,16 +56,16 @@ export default function RouteHistory({
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
+    if (diffMins < 1) return t('time.justNow');
+    if (diffMins < 60) return t('time.minutesAgo', { count: diffMins });
+    if (diffHours < 24) return t('time.hoursAgo', { count: diffHours });
+    if (diffDays < 7) return t('time.daysAgo', { count: diffDays });
     return date.toLocaleDateString();
   };
 
   const getStationName = (stationId: string) => {
     const station = stations.find((s) => s.station_id === stationId);
-    return station?.name || 'Unknown Station';
+    return station?.name || t('common.unknownStation');
   };
 
   const canSaveCurrentRoute = startStation && endStation && route && !showSaveDialog;

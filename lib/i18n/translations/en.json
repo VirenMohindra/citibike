@@ -34,13 +34,16 @@
     "terms": "Terms",
     "toggleDistanceUnit": "Toggle distance unit (mi/km)",
     "github": "GitHub",
+    "viewGitHub": "View on GitHub",
     "openSource": "Open Source",
     "menu": "Menu",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "units": "Units",
     "bikeAngel": "Bike Angel",
-    "theme": "Theme"
+    "theme": "Theme",
+    "unknownStation": "Unknown Station",
+    "reset": "Reset"
   },
   "toast": {
     "autoSync": {
@@ -650,6 +653,41 @@
     "noFavoritesHint": "Click the ☆ star on any station to save it as a favorite",
     "noStations": "No stations found",
     "noStationsHint": "Try a different search term or filter"
+  },
+  "nav": {
+    "selectCity": "Select city",
+    "github": "View on GitHub"
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}}d ago"
+  },
+  "map": {
+    "station": {
+      "start": "Start",
+      "end": "End",
+      "unknown": "Unknown Station"
+    }
+  },
+  "tripReplay": {
+    "play": "Play",
+    "pause": "Pause",
+    "reset": "Reset"
+  },
+  "dialogs": {
+    "confirmClear": "Are you sure you want to clear all public trip data? This cannot be undone.",
+    "confirmResetErrors": "Reset all error tracking? This will allow trips to be retried."
+  },
+  "auth": {
+    "sessionExpiringWarning": "Session expired or expiring soon. Please log out and log back in.",
+    "sessionExpiredCitibike": "Session expired. Please log out and log back in to Citibike."
+  },
+  "api": {
+    "errors": {
+      "rateLimitedAPI": "Rate limited by Citibike API. Please wait a few minutes and try again."
+    }
   },
   "tripHistory": {
     "loading": "Loading trip history...",

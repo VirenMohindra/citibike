@@ -50,16 +50,18 @@ export default function TripVisualizationMap({
 
   // Helper function to generate popup HTML
   const generatePopupHTML = useCallback(
-    (stationName: string, label: string) => {
+    (stationName: string, labelKey: 'map.station.start' | 'map.station.end') => {
       const isDark = resolvedTheme === 'dark';
+      const label = t(labelKey);
+      const displayStationName = stationName || t('common.unknownStation');
       return `
         <div class="p-2 ${isDark ? 'bg-gray-800' : 'bg-white'}">
           <h3 class="font-semibold text-sm mb-1 ${isDark ? 'text-gray-100' : 'text-gray-900'}">${label}</h3>
-          <p class="text-xs ${isDark ? 'text-gray-300' : 'text-gray-700'}">${stationName}</p>
+          <p class="text-xs ${isDark ? 'text-gray-300' : 'text-gray-700'}">${displayStationName}</p>
         </div>
       `;
     },
-    [resolvedTheme]
+    [resolvedTheme, t]
   );
 
   // Fetch all stations for background layer
@@ -326,9 +328,7 @@ export default function TripVisualizationMap({
               offset: 25,
               className: 'citibike-popup',
               closeButton: false,
-            }).setHTML(
-              generatePopupHTML(selectedTrip.startStationName || 'Unknown Station', 'Start')
-            )
+            }).setHTML(generatePopupHTML(selectedTrip.startStationName || '', 'map.station.start'))
           )
           .addTo(map.current);
 
@@ -355,7 +355,7 @@ export default function TripVisualizationMap({
               offset: 25,
               className: 'citibike-popup',
               closeButton: false,
-            }).setHTML(generatePopupHTML(selectedTrip.endStationName || 'Unknown Station', 'End'))
+            }).setHTML(generatePopupHTML(selectedTrip.endStationName || '', 'map.station.end'))
           )
           .addTo(map.current);
       }
@@ -404,7 +404,7 @@ export default function TripVisualizationMap({
             offset: 25,
             className: 'citibike-popup',
             closeButton: false,
-          }).setHTML(generatePopupHTML(selectedTrip.startStationName || 'Unknown Station', 'Start'))
+          }).setHTML(generatePopupHTML(selectedTrip.startStationName || '', 'map.station.start'))
         )
         .addTo(map.current);
 
@@ -431,7 +431,7 @@ export default function TripVisualizationMap({
             offset: 25,
             className: 'citibike-popup',
             closeButton: false,
-          }).setHTML(generatePopupHTML(selectedTrip.endStationName || 'Unknown Station', 'End'))
+          }).setHTML(generatePopupHTML(selectedTrip.endStationName || '', 'map.station.end'))
         )
         .addTo(map.current);
 
