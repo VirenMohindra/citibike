@@ -1,5 +1,23 @@
 import { defineConfig, devices } from '@playwright/test';
 
+// Centralized timeout configuration
+const TIMEOUTS = {
+  // Test execution timeouts
+  test: 60 * 1000, // 60s - global test timeout (allows for map + interactions)
+  action: 30 * 1000, // 30s - individual action timeout (marker clicks need time to become interactive)
+  navigation: 30 * 1000, // 30s - page navigation timeout
+
+  // WebGL/Canvas loading (for Mapbox in CI)
+  canvas: 30 * 1000, // 30s - wait for .mapboxgl-canvas to render
+  marker: 30 * 1000, // 30s - wait for .marker elements to be interactive
+
+  // Server startup
+  webServer: 120 * 1000, // 120s (2 min) - dev server startup in CI
+} as const;
+
+// Export for use in test files
+export { TIMEOUTS };
+
 export default defineConfig({
   testDir: './tests',
 
@@ -30,13 +48,13 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
 
-    // Shorter timeouts for faster feedback
-    actionTimeout: 10 * 1000,
-    navigationTimeout: 30 * 1000,
+    // Reasonable timeouts for CI
+    actionTimeout: TIMEOUTS.action,
+    navigationTimeout: TIMEOUTS.navigation,
   },
 
-  // Global timeout to prevent hanging tests
-  timeout: 30 * 1000,
+  // Global timeout to prevent hanging tests (increased for CI map loading)
+  timeout: TIMEOUTS.test,
 
   projects: [
     {
@@ -45,6 +63,18 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         // Use headless mode in CI for performance
         headless: true,
+        // Enable WebGL for Mapbox GL JS in CI headless Chrome
+        // Local tests don't need these flags (they can use system GPU)
+        ...(process.env.CI && {
+          launchOptions: {
+            args: [
+              '--use-gl=swiftshader', // Software-based GL for headless CI
+              '--enable-webgl',
+              '--enable-accelerated-2d-canvas',
+              '--disable-gpu', // Disable GPU hardware acceleration (use SwiftShader instead)
+            ],
+          },
+        }),
       },
     },
   ],
@@ -53,9 +83,15 @@ export default defineConfig({
     command: 'npm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
-    // Suppress dev server logs in test output
-    stdout: 'ignore',
+    timeout: TIMEOUTS.webServer,
+    // Show server logs in CI to debug issues
+    stdout: process.env.CI ? 'pipe' : 'ignore',
     stderr: 'pipe',
+    // Only pass Mapbox token if defined (otherwise Next.js will load from .env.local)
+    ...(process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN && {
+      env: {
+        NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN,
+      },
+    }),
   },
 });

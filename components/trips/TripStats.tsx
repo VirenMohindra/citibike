@@ -3,7 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useAppStore } from '@/lib/store';
 import { db, createSyncManager, useTrips } from '@/lib/db';
-import { calculateTripStats, formatCO2, formatDuration, formatMoney } from '@/lib/stats';
+import {
+  calculateTripStats,
+  formatCO2,
+  formatDuration,
+  formatMoney,
+  getTripsPerMonthAverage,
+  getLongestTrip,
+} from '@/lib/stats';
 import type { TripStats as TripStatsType, Trip } from '@/lib/types';
 import { useI18n } from '@/lib/i18n';
 import { supabase, isSupabaseConfigured, signInWithGoogle, signOut } from '@/lib/supabase/client';
@@ -14,6 +21,8 @@ export default function TripStats() {
   const { t, formatDistance } = useI18n();
   const { citibikeUser, distanceUnit } = useAppStore();
   const [stats, setStats] = useState<TripStatsType | null>(null);
+  const [tripsPerMonth, setTripsPerMonth] = useState<number>(0);
+  const [longestTrip, setLongestTrip] = useState<Trip | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncProgress, setSyncProgress] = useState<{
     page: number;
@@ -42,6 +51,13 @@ export default function TripStats() {
       }));
       const calculatedStats = calculateTripStats(legacyTrips);
       setStats(calculatedStats);
+
+      // Calculate additional stats
+      const avgPerMonth = getTripsPerMonthAverage(legacyTrips);
+      setTripsPerMonth(avgPerMonth);
+
+      const longest = getLongestTrip(legacyTrips);
+      setLongestTrip(longest);
     } else if (trips && trips.length === 0) {
       setStats({
         totalTrips: 0,
@@ -58,6 +74,8 @@ export default function TripStats() {
         },
         bikeTypeUsage: { classic: 0, ebike: 0 },
       });
+      setTripsPerMonth(0);
+      setLongestTrip(null);
     }
   }, [trips]);
 
@@ -485,6 +503,37 @@ export default function TripStats() {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Additional Stats - 2 columns */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Average Trips Per Month */}
+                <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-900/20 dark:to-cyan-800/20 rounded-lg p-4">
+                  <div className="text-3xl font-bold text-cyan-900 dark:text-cyan-100">
+                    {tripsPerMonth.toFixed(1)}
+                  </div>
+                  <div className="text-sm text-cyan-700 dark:text-cyan-300 font-medium">
+                    {t('tripStats.avgTripsPerMonth')}
+                  </div>
+                  <div className="text-xs text-cyan-600 dark:text-cyan-400 mt-1 opacity-75">
+                    {t('tripStats.basedOn')} {stats.totalTrips} {t('tripStats.ridesCount')}
+                  </div>
+                </div>
+
+                {/* Longest Trip */}
+                {longestTrip && (
+                  <div className="bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-900/20 dark:to-rose-800/20 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-rose-900 dark:text-rose-100">
+                      {formatDistance(longestTrip.distance || 0)}
+                    </div>
+                    <div className="text-sm text-rose-700 dark:text-rose-300 font-medium">
+                      {t('tripStats.longestTrip')}
+                    </div>
+                    <div className="text-xs text-rose-600 dark:text-rose-400 mt-1 opacity-75 truncate">
+                      {longestTrip.startStationName} → {longestTrip.endStationName}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Favorite Stations */}

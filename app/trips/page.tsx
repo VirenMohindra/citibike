@@ -30,6 +30,10 @@ export default function TripsPage() {
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
   const [selectedTrip, setSelectedTrip] = useState<DBTrip | null>(null);
 
+  // Mobile state
+  const [mobileListOpen, setMobileListOpen] = useState(false);
+  const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false);
+
   // Apply search filtering (not part of DB filters)
   const filteredTrips = useMemo(() => {
     if (!trips || !searchQuery) return trips || [];
@@ -301,10 +305,10 @@ export default function TripsPage() {
         <TripDetailsSyncButton />
       </NavBar>
 
-      {/* Main Content - 3 Column Layout */}
+      {/* Main Content - Responsive Layout */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Trip List - Left Column */}
-        <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col overflow-hidden">
+        {/* Desktop & Tablet: Trip List - Left Column */}
+        <div className="hidden lg:flex w-80 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-col overflow-hidden">
           <TripFiltersComponent
             onFiltersChange={handleFiltersChange}
             onSearchChange={setSearchQuery}
@@ -322,8 +326,8 @@ export default function TripsPage() {
 
         {/* Map / Stats - Center Column */}
         <div className="flex-1 relative">
-          {/* View Mode Toggle */}
-          <div className="absolute top-4 right-4 z-10 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-1 flex gap-1">
+          {/* View Mode Toggle - Desktop */}
+          <div className="hidden sm:flex absolute top-4 right-4 z-10 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-1 gap-1">
             <button
               onClick={() => setViewMode('trip')}
               className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
@@ -362,7 +366,55 @@ export default function TripsPage() {
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
-              🐛 Debug
+              {t('tripsPage.debugButton')}
+            </button>
+          </div>
+
+          {/* View Mode Toggle - Mobile (Compact) */}
+          <div className="sm:hidden absolute top-4 right-4 z-10 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-1 flex gap-1">
+            <button
+              onClick={() => setViewMode('trip')}
+              className={`p-2 text-sm font-medium rounded-md transition-colors ${
+                viewMode === 'trip'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+              title={t('tripVisualizationMap.tripView')}
+            >
+              🗺️
+            </button>
+            <button
+              onClick={() => setViewMode('heatmap')}
+              className={`p-2 text-sm font-medium rounded-md transition-colors ${
+                viewMode === 'heatmap'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+              title={t('tripVisualizationMap.heatmapView')}
+            >
+              {t('tripsPage.heatmapIcon')}
+            </button>
+            <button
+              onClick={() => setViewMode('stats')}
+              className={`p-2 text-sm font-medium rounded-md transition-colors ${
+                viewMode === 'stats'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+              title={t('tripsPage.statistics')}
+            >
+              {t('tripsPage.statisticsIcon')}
+            </button>
+            <button
+              onClick={() => setViewMode('debug')}
+              className={`p-2 text-sm font-medium rounded-md transition-colors ${
+                viewMode === 'debug'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+              title="Debug"
+            >
+              {t('tripsPage.debugIcon')}
             </button>
           </div>
 
@@ -383,11 +435,120 @@ export default function TripsPage() {
           )}
         </div>
 
-        {/* Trip Details - Right Column */}
-        <div className="w-96 border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-y-auto">
+        {/* Desktop: Trip Details - Right Column */}
+        <div className="hidden lg:flex w-96 border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-y-auto">
           <TripDetailsPanel trip={selectedTrip} />
         </div>
       </div>
+
+      {/* Mobile: Floating Action Buttons */}
+      <div className="lg:hidden fixed bottom-8 left-4 right-4 z-20 flex gap-3 justify-between">
+        <button
+          onClick={() => setMobileListOpen(true)}
+          className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 10h16M4 14h16M4 18h16"
+            />
+          </svg>
+          {t('tripsPage.viewTrips')}
+        </button>
+        {selectedTrip && (
+          <button
+            onClick={() => setMobileDetailsOpen(true)}
+            className="flex-1 px-6 py-3 bg-green-600 text-white rounded-full shadow-lg flex items-center justify-center gap-2 hover:bg-green-700 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            {t('tripsPage.viewDetails')}
+          </button>
+        )}
+      </div>
+
+      {/* Mobile: Trip List Bottom Sheet */}
+      {mobileListOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex items-end">
+          <div
+            className="absolute inset-0 bg-black bg-opacity-50"
+            onClick={() => setMobileListOpen(false)}
+          ></div>
+          <div className="relative w-full bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl max-h-[85vh] flex flex-col">
+            <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-2 z-10">
+              <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-2"></div>
+              <button
+                onClick={() => setMobileListOpen(false)}
+                className="absolute right-4 top-4 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <TripFiltersComponent
+                onFiltersChange={handleFiltersChange}
+                onSearchChange={setSearchQuery}
+                totalTrips={totalTripCount}
+                filteredTrips={filteredTrips.length}
+              />
+              <div className="flex-1 overflow-y-auto">
+                <TripList
+                  trips={filteredTrips}
+                  selectedTripId={selectedTripId}
+                  onSelectTrip={(id) => {
+                    setSelectedTripId(id);
+                    setMobileListOpen(false);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile: Trip Details Bottom Sheet */}
+      {mobileDetailsOpen && selectedTrip && (
+        <div className="lg:hidden fixed inset-0 z-50 flex items-end">
+          <div
+            className="absolute inset-0 bg-black bg-opacity-50"
+            onClick={() => setMobileDetailsOpen(false)}
+          ></div>
+          <div className="relative w-full bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl max-h-[85vh] overflow-auto">
+            <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-2">
+              <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-2"></div>
+              <button
+                onClick={() => setMobileDetailsOpen(false)}
+                className="absolute right-4 top-4 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <TripDetailsPanel trip={selectedTrip} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
