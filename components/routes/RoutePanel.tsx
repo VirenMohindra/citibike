@@ -35,7 +35,7 @@ export default function RoutePanel() {
       setTimeout(() => setShowCopied(false), 2000);
     } catch (error) {
       console.error('Failed to copy:', error);
-      addToast('Failed to copy link', 'error');
+      addToast(t('toast.routeCopyFailed'), 'error');
     }
   };
 

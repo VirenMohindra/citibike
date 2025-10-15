@@ -58,19 +58,19 @@ export default function RoutePopularity({
   if (popularity.tripCount > 1000) {
     popularityLevel = 'very_popular';
     popularityColor = 'text-green-600 dark:text-green-400';
-    popularityLabel = 'Very Popular';
+    popularityLabel = t('routePopularity.labels.veryPopular');
   } else if (popularity.tripCount > 500) {
     popularityLevel = 'popular';
     popularityColor = 'text-blue-600 dark:text-blue-400';
-    popularityLabel = 'Popular';
+    popularityLabel = t('routePopularity.labels.popular');
   } else if (popularity.tripCount > 100) {
     popularityLevel = 'moderate';
     popularityColor = 'text-yellow-600 dark:text-yellow-400';
-    popularityLabel = 'Moderate';
+    popularityLabel = t('routePopularity.labels.moderate');
   } else {
     popularityLevel = 'rare';
     popularityColor = 'text-gray-600 dark:text-gray-400';
-    popularityLabel = 'Rarely Used';
+    popularityLabel = t('routePopularity.labels.rarely');
   }
 
   return (

@@ -159,7 +159,7 @@ export default function TripStats() {
       addToast(message, 'success');
     } catch (error) {
       console.error('Sync error:', error);
-      addToast(error instanceof Error ? error.message : 'Failed to sync trips', 'error');
+      addToast(error instanceof Error ? error.message : t('tripStats.syncFailed'), 'error');
     } finally {
       setIsSyncing(false);
       setSyncProgress(null);
@@ -221,7 +221,7 @@ export default function TripStats() {
       await signInWithGoogle();
     } catch (error) {
       console.error('Sign in error:', error);
-      addToast(error instanceof Error ? error.message : 'Failed to sign in', 'error');
+      addToast(error instanceof Error ? error.message : t('tripStats.signInFailed'), 'error');
     }
   };
 
@@ -230,7 +230,7 @@ export default function TripStats() {
       await signOut();
     } catch (error) {
       console.error('Sign out error:', error);
-      addToast(error instanceof Error ? error.message : 'Failed to sign out', 'error');
+      addToast(error instanceof Error ? error.message : t('tripStats.signOutFailed'), 'error');
     }
   };
 
