@@ -7,6 +7,7 @@
 import { db, CACHE_TTL } from './schema';
 import type { Trip } from '../types';
 import { API_ROUTES } from '@/config/routes';
+import { SYNC_ERRORS, createSyncError } from './sync-errors';
 
 // ============================================
 // Sync Manager Class
@@ -51,13 +52,13 @@ export class SyncManager {
       });
 
       if (!response.ok) {
-        throw new Error(`Profile sync failed: ${response.status}`);
+        throw createSyncError(SYNC_ERRORS.PROFILE_SYNC_FAILED, { status: response.status });
       }
 
       const data = await response.json();
 
       if (!data.success || !data.user) {
-        throw new Error('Invalid profile response');
+        throw createSyncError(SYNC_ERRORS.INVALID_PROFILE_RESPONSE);
       }
 
       // Update database
@@ -136,13 +137,13 @@ export class SyncManager {
       });
 
       if (!response.ok) {
-        throw new Error(`Bike Angel sync failed: ${response.status}`);
+        throw createSyncError(SYNC_ERRORS.BIKE_ANGEL_SYNC_FAILED, { status: response.status });
       }
 
       const data = await response.json();
 
       if (!data.success) {
-        throw new Error('Invalid bike angel response');
+        throw createSyncError(SYNC_ERRORS.INVALID_BIKE_ANGEL_RESPONSE);
       }
 
       // Update database
@@ -221,13 +222,13 @@ export class SyncManager {
       });
 
       if (!response.ok) {
-        throw new Error(`Subscriptions sync failed: ${response.status}`);
+        throw createSyncError(SYNC_ERRORS.SUBSCRIPTIONS_SYNC_FAILED, { status: response.status });
       }
 
       const data = await response.json();
 
       if (!data.success) {
-        throw new Error('Invalid subscriptions response');
+        throw createSyncError(SYNC_ERRORS.INVALID_SUBSCRIPTIONS_RESPONSE);
       }
 
       // Update database
@@ -314,13 +315,13 @@ export class SyncManager {
         });
 
         if (!response.ok) {
-          throw new Error(`Trip sync failed: ${response.status}`);
+          throw createSyncError(SYNC_ERRORS.TRIP_SYNC_FAILED, { status: response.status });
         }
 
         const data = await response.json();
 
         if (!data.success) {
-          throw new Error('Invalid trip response');
+          throw createSyncError(SYNC_ERRORS.INVALID_TRIP_RESPONSE);
         }
 
         // Store trips in batch
@@ -495,12 +496,15 @@ export class SyncManager {
                 });
 
                 if (isRateLimited) {
-                  throw new Error(`RATE_LIMITED: ${errorData.error || 'Too many requests'}`);
+                  throw createSyncError(SYNC_ERRORS.RATE_LIMITED, {
+                    error: errorData.error || 'Too many requests',
+                  });
                 }
 
-                throw new Error(
-                  `HTTP ${response.status}: ${errorData.error || response.statusText}`
-                );
+                throw createSyncError(SYNC_ERRORS.HTTP_ERROR, {
+                  status: response.status,
+                  error: errorData.error || response.statusText,
+                });
               }
 
               const data = await response.json();
@@ -514,7 +518,7 @@ export class SyncManager {
                   detailsFetched: false,
                 });
 
-                throw new Error('Invalid response');
+                throw createSyncError(SYNC_ERRORS.INVALID_RESPONSE);
               }
 
               // Extract data

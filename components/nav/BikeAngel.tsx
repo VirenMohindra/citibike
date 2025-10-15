@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Star, TrendingUp, Flame, Award, RefreshCw, Gift } from 'lucide-react';
-import { parseBikeAngelResponse, type BikeAngelParsedData } from '@/lib/api/bike-angel-parser';
+import { Award, Flame, Gift, RefreshCw, Star, TrendingUp } from 'lucide-react';
+import { type BikeAngelParsedData, parseBikeAngelResponse } from '@/lib/api/bike-angel-parser';
 import { useAppStore } from '@/lib/store';
 import { useI18n } from '@/lib/i18n';
 
@@ -71,7 +71,7 @@ export default function BikeAngel() {
           setLoading(false);
           return;
         }
-        throw new Error('Failed to fetch Bike Angel data');
+        throw new Error(t('systemErrors.api.bikeAngelRewardsFailed'));
       }
 
       const result = await response.json();

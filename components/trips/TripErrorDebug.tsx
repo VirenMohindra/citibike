@@ -60,7 +60,7 @@ export default function TripErrorDebug({ userId }: { userId: string | null }) {
 
   async function resetAllErrors() {
     if (!userId) return;
-    if (!confirm('Reset all error tracking? This will allow trips to be retried.')) return;
+    if (!confirm(t('dialogs.confirmResetErrors'))) return;
 
     setIsResetting(true);
     try {

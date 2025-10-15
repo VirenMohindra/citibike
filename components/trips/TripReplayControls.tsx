@@ -71,7 +71,7 @@ export default function TripReplayControls({
           <button
             onClick={onPlayPause}
             className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white transition-colors"
-            aria-label={isReplaying && !isPaused ? 'Pause' : 'Play'}
+            aria-label={isReplaying && !isPaused ? t('tripReplay.pause') : t('tripReplay.play')}
           >
             {isReplaying && !isPaused ? (
               <Pause className="w-5 h-5" />
@@ -83,7 +83,7 @@ export default function TripReplayControls({
           <button
             onClick={onReset}
             className="flex items-center justify-center w-10 h-10 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
-            aria-label="Reset"
+            aria-label={t('tripReplay.reset')}
           >
             <RotateCcw className="w-4 h-4" />
           </button>

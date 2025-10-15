@@ -34,13 +34,16 @@
     "terms": "Terms",
     "toggleDistanceUnit": "Toggle distance unit (mi/km)",
     "github": "GitHub",
+    "viewGitHub": "View on GitHub",
     "openSource": "Open Source",
     "menu": "Menu",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "units": "Units",
     "bikeAngel": "Bike Angel",
-    "theme": "Theme"
+    "theme": "Theme",
+    "unknownStation": "Unknown Station",
+    "reset": "Reset"
   },
   "toast": {
     "autoSync": {
@@ -83,10 +86,12 @@
       "failed": "Restore failed: {{error}}"
     },
     "routeCopy": "Link copied to clipboard!",
+    "routeCopyFailed": "Failed to copy link",
     "routeSave": "Route saved successfully!",
     "routeDelete": "Route deleted successfully!",
     "sessionError": "Session expired. Please log in again.",
-    "rateLimitError": "Rate limited. Please wait a few minutes and try again."
+    "rateLimitError": "Rate limited. Please wait a few minutes and try again.",
+    "logoutSuccess": "Logged out successfully"
   },
   "map": {
     "title": "Citibike Station Map",
@@ -431,6 +436,12 @@
     "memberUsage": "Member Usage",
     "percent": "%",
     "mostPopularTimes": "Most Popular Times",
+    "labels": {
+      "veryPopular": "Very Popular",
+      "popular": "Popular",
+      "moderate": "Moderate",
+      "rarely": "Rarely Used"
+    },
     "timeLabels": {
       "morning_rush": "Morning Rush (7-10am)",
       "midday": "Midday (10am-4pm)",
@@ -559,6 +570,9 @@
     "trips": "trips",
     "noTrips": "No trips yet",
     "noTripsDescription": "Click \"Sync Trips\" to load your ride history",
+    "syncFailed": "Failed to sync trips",
+    "signInFailed": "Failed to sign in",
+    "signOutFailed": "Failed to sign out",
     "totalRides": "Total Rides",
     "distance": "Distance",
     "avgSpeedMiles": "~9 mph avg",
@@ -639,6 +653,41 @@
     "noFavoritesHint": "Click the ☆ star on any station to save it as a favorite",
     "noStations": "No stations found",
     "noStationsHint": "Try a different search term or filter"
+  },
+  "nav": {
+    "selectCity": "Select city",
+    "github": "View on GitHub"
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}}d ago"
+  },
+  "map": {
+    "station": {
+      "start": "Start",
+      "end": "End",
+      "unknown": "Unknown Station"
+    }
+  },
+  "tripReplay": {
+    "play": "Play",
+    "pause": "Pause",
+    "reset": "Reset"
+  },
+  "dialogs": {
+    "confirmClear": "Are you sure you want to clear all public trip data? This cannot be undone.",
+    "confirmResetErrors": "Reset all error tracking? This will allow trips to be retried."
+  },
+  "auth": {
+    "sessionExpiringWarning": "Session expired or expiring soon. Please log out and log back in.",
+    "sessionExpiredCitibike": "Session expired. Please log out and log back in to Citibike."
+  },
+  "api": {
+    "errors": {
+      "rateLimitedAPI": "Rate limited by Citibike API. Please wait a few minutes and try again."
+    }
   },
   "tripHistory": {
     "loading": "Loading trip history...",
@@ -851,6 +900,9 @@
     "dataSourceLink": "s3.amazonaws.com/tripdata",
     "convertInstructions": ", then convert to JSON using",
     "scriptCommand": "tsx scripts/import-public-data.ts",
+    "startingImport": "Starting import...",
+    "loadingFile": "Loading JSON file...",
+    "readingFile": "Reading file...",
     "loadingStats": "Loading statistics...",
     "currentData": "Current Data",
     "totalTrips": "Total Trips",
@@ -1154,6 +1206,48 @@
     "openSource": {
       "title": "Open Source",
       "description": "This project is open source. You can view the source code on "
+    }
+  },
+  "systemErrors": {
+    "hooks": {
+      "useToastRequired": "useToast must be used within a ToastProvider",
+      "useI18nRequired": "useI18n must be used within an I18nProvider",
+      "useThemeRequired": "useTheme must be used within a ThemeProvider"
+    },
+    "api": {
+      "stationInfoFailed": "Failed to fetch station information",
+      "stationStatusFailed": "Failed to fetch station status",
+      "systemInfoFailed": "Failed to fetch system information",
+      "systemRegionsFailed": "Failed to fetch system regions",
+      "bikeAngelRewardsFailed": "Failed to fetch Bike Angel rewards",
+      "gbfsError": "GBFS API error: {{status}}"
+    },
+    "sync": {
+      "notAuthenticated": "Not authenticated",
+      "profileSyncFailed": "Profile sync failed: {{status}}",
+      "invalidProfileResponse": "Invalid profile response",
+      "bikeAngelSyncFailed": "Bike Angel sync failed: {{status}}",
+      "invalidBikeAngelResponse": "Invalid Bike Angel response",
+      "subscriptionsSyncFailed": "Subscriptions sync failed: {{status}}",
+      "invalidSubscriptionsResponse": "Invalid subscriptions response",
+      "tripSyncFailed": "Trip sync failed: {{status}}",
+      "invalidTripResponse": "Invalid trip response",
+      "backupFailed": "Failed to backup trips: {{error}}",
+      "restoreFailed": "Failed to restore trips: {{error}}",
+      "invalidResponse": "Invalid response",
+      "rateLimited": "Rate limited: {{error}}",
+      "httpError": "HTTP {{status}}: {{error}}"
+    },
+    "config": {
+      "invalidEnvironment": "Invalid environment configuration. Please check your .env.local file.",
+      "mapboxTokenMissing": "Mapbox access token is not configured",
+      "envVarMissing": "Required environment variable {{key}} is not set"
+    },
+    "tokenRefresh": {
+      "failed": "Token refresh failed"
+    },
+    "fileLoad": {
+      "failed": "Failed to load file: {{error}}"
     }
   }
 }

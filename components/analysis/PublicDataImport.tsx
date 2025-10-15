@@ -54,7 +54,7 @@ export default function PublicDataImport() {
 
   // Handle clear data
   const handleClearData = async () => {
-    if (!confirm('Are you sure you want to clear all public trip data? This cannot be undone.')) {
+    if (!confirm(t('dialogs.confirmClear'))) {
       return;
     }
 

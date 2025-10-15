@@ -55,7 +55,7 @@ export default function TripDetailsSyncButton() {
 
       // If token expires in less than 5 minutes or already expired
       if (timeUntilExpiry < 5 * 60 * 1000) {
-        setError('Session expired or expiring soon. Please log out and log back in.');
+        setError(t('auth.sessionExpiringWarning'));
         return;
       }
     }
@@ -98,9 +98,9 @@ export default function TripDetailsSyncButton() {
       const isRateLimited = errorMessage.includes('RATE_LIMITED');
 
       if (isSessionExpired && !isRateLimited) {
-        setError('Session expired. Please log out and log back in to Citibike.');
+        setError(t('auth.sessionExpiredCitibike'));
       } else if (isRateLimited) {
-        setError('Rate limited by Citibike API. Please wait a few minutes and try again.');
+        setError(t('api.errors.rateLimitedAPI'));
       } else {
         setError(errorMessage);
       }
