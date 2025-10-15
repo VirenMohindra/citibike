@@ -113,7 +113,10 @@
       "selectEnd": "Select as end",
       "navigate": "Navigate",
       "favorite": "Add to favorites",
-      "unfavorite": "Remove from favorites"
+      "unfavorite": "Remove from favorites",
+      "start": "Start",
+      "end": "End",
+      "unknown": "Unknown Station"
     },
     "route": {
       "title": "Route Planner",
@@ -271,7 +274,9 @@
     },
     "security": {
       "credentialsStored": "Your credentials are stored securely"
-    }
+    },
+    "sessionExpiringWarning": "Session expired or expiring soon. Please log out and log back in.",
+    "sessionExpiredCitibike": "Session expired. Please log out and log back in to Citibike."
   },
   "account": {
     "title": "My Account",
@@ -389,6 +394,9 @@
       "tooManyAttempts": "Too many attempts. Please try again later.",
       "serverError": "An error occurred. Please try again.",
       "networkError": "Network error. Please check your connection."
+    },
+    "errors": {
+      "rateLimitedAPI": "Rate limited by Citibike API. Please wait a few minutes and try again."
     }
   },
   "metadata": {
@@ -664,13 +672,6 @@
     "hoursAgo": "{{count}}h ago",
     "daysAgo": "{{count}}d ago"
   },
-  "map": {
-    "station": {
-      "start": "Start",
-      "end": "End",
-      "unknown": "Unknown Station"
-    }
-  },
   "tripReplay": {
     "play": "Play",
     "pause": "Pause",
@@ -679,15 +680,6 @@
   "dialogs": {
     "confirmClear": "Are you sure you want to clear all public trip data? This cannot be undone.",
     "confirmResetErrors": "Reset all error tracking? This will allow trips to be retried."
-  },
-  "auth": {
-    "sessionExpiringWarning": "Session expired or expiring soon. Please log out and log back in.",
-    "sessionExpiredCitibike": "Session expired. Please log out and log back in to Citibike."
-  },
-  "api": {
-    "errors": {
-      "rateLimitedAPI": "Rate limited by Citibike API. Please wait a few minutes and try again."
-    }
   },
   "tripHistory": {
     "loading": "Loading trip history...",
