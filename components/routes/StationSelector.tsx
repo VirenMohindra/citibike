@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { List } from 'react-window';
 import { useAppStore } from '@/lib/store';
+import { useToast } from '@/lib/toast-context';
 import { findNearestStations } from '@/lib/gbfs';
 import { fuzzySearch } from '@/lib/fuzzy';
 import type { StationWithStatus } from '@/lib/types';
@@ -23,6 +24,7 @@ type FilterType = 'all' | 'bikes' | 'ebikes' | 'docks' | 'favorites';
 
 export default function StationSelector({ stations = [], isLoading }: StationSelectorProps) {
   const { t, formatDistance } = useI18n();
+  const { addToast } = useToast();
   const {
     startStation,
     endStation,
@@ -171,7 +173,7 @@ export default function StationSelector({ stations = [], isLoading }: StationSel
         },
         (error) => {
           console.error('Error getting location:', error);
-          alert(t('stationSelector.locationError'));
+          addToast(t('stationSelector.locationError'), 'error');
           setLocationLoading(false);
         },
         {
@@ -181,7 +183,7 @@ export default function StationSelector({ stations = [], isLoading }: StationSel
         }
       );
     } else {
-      alert(t('stationSelector.geolocationUnsupported'));
+      addToast(t('stationSelector.geolocationUnsupported'), 'error');
       setLocationLoading(false);
     }
   };

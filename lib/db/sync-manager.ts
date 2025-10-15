@@ -414,12 +414,12 @@ export class SyncManager {
       current?: string;
     }) => void,
     options: {
-      rateLimit?: number; // ms between batches (default 1000 = 1 req/sec)
+      rateLimit?: number; // ms between batches (default 500 = 2 req/sec)
       batchSize?: number; // parallel requests per batch (default 1 = sequential)
       maxTrips?: number; // max trips to fetch (default: all)
     } = {}
   ): Promise<{ fetched: number; failed: number; skipped: number }> {
-    const { rateLimit = 1000, batchSize = 1, maxTrips } = options;
+    const { rateLimit = 500, batchSize = 1, maxTrips } = options;
 
     try {
       // Get all trips that need details (no polyline or missing coordinates)

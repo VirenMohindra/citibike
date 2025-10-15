@@ -1,0 +1,40 @@
+# Pre-commit hooks for code quality
+# Install: pre-commit install
+# Run manually: pre-commit run --all-files
+# Bypass (not recommended): git commit --no-verify
+
+repos:
+  # ESLint - JavaScript/TypeScript linting
+  - repo: local
+    hooks:
+      - id: eslint
+        name: ESLint
+        entry: npx eslint
+        language: system
+        files: \.(js|jsx|ts|tsx)$
+        pass_filenames: true
+        # Don't run eslint on node_modules
+        exclude: ^node_modules/
+
+  # Prettier - Code formatting
+  - repo: local
+    hooks:
+      - id: prettier
+        name: Prettier
+        entry: npx prettier --write
+        language: system
+        files: \.(js|jsx|ts|tsx|json|yaml|md|css)$
+        pass_filenames: true
+        exclude: ^node_modules/
+
+  # TypeScript - Type checking
+  - repo: local
+    hooks:
+      - id: typescript
+        name: TypeScript
+        entry: npx tsc --noEmit
+        language: system
+        files: \.(ts|tsx)$
+        pass_filenames: false
+        # Only run once per commit, not per file
+        stages: [commit]

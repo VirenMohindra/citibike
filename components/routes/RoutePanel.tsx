@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAppStore } from '@/lib/store';
 import { useI18n } from '@/lib/i18n';
+import { useToast } from '@/lib/toast-context';
 import { calculateDistance } from '@/lib/gbfs';
 import { downloadFile, exportAsGPX, exportAsKML, generateFilename } from '@/lib/export';
 import { Download, Share2 } from 'lucide-react';
@@ -10,6 +11,7 @@ import { NavigationPanel } from '@/components/routes/NavigationPanel';
 
 export default function RoutePanel() {
   const { t, formatDistance } = useI18n();
+  const { addToast } = useToast();
   const { startStation, endStation, waypoints, route, clearRoute, distanceUnit } = useAppStore();
   const [showCopied, setShowCopied] = useState(false);
 
@@ -28,10 +30,12 @@ export default function RoutePanel() {
 
     try {
       await navigator.clipboard.writeText(url);
+      addToast(t('toast.routeCopy'), 'success');
       setShowCopied(true);
       setTimeout(() => setShowCopied(false), 2000);
     } catch (error) {
       console.error('Failed to copy:', error);
+      addToast('Failed to copy link', 'error');
     }
   };
 
