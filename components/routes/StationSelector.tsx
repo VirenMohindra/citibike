@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { List } from 'react-window';
 import { useAppStore } from '@/lib/store';
 import { findNearestStations } from '@/lib/gbfs';
@@ -42,7 +42,6 @@ export default function StationSelector({ stations = [], isLoading }: StationSel
   const [userLocation, setUserLocation] = useState<GeolocationCoordinates | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [filter, setFilter] = useState<FilterType>('all');
-  const [listHeight, setListHeight] = useState(600);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Get first station's coordinates for BA rewards (fallback to NYC center if no stations)
@@ -55,22 +54,6 @@ export default function StationSelector({ stations = [], isLoading }: StationSel
 
   // Fetch Bike Angel rewards
   const { rewards: bikeAngelRewards } = useBikeAngelRewards(referenceCoords);
-
-  // Measure container height for virtualization
-  useEffect(() => {
-    const updateHeight = () => {
-      if (containerRef.current) {
-        const height = containerRef.current.clientHeight;
-        if (height > 0) {
-          setListHeight(height);
-        }
-      }
-    };
-
-    updateHeight();
-    window.addEventListener('resize', updateHeight);
-    return () => window.removeEventListener('resize', updateHeight);
-  }, []);
 
   // Helper function to check if station is within radius of map center
   const isStationInBounds = useCallback(
@@ -216,9 +199,9 @@ export default function StationSelector({ stations = [], isLoading }: StationSel
   }
 
   return (
-    <div className="flex flex-col max-h-[calc(100vh-120px)] sm:max-h-[calc(100vh-120px)] relative z-[10002] bg-white dark:bg-gray-900">
+    <div className="flex flex-col h-full max-h-96 relative z-[10002] bg-white dark:bg-gray-900">
       {/* Header */}
-      <div className="p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+      <div className="p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex-shrink-0">
         <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">
           {t('stationSelector.title')}
         </h2>
@@ -463,7 +446,7 @@ export default function StationSelector({ stations = [], isLoading }: StationSel
 
       {/* Selected Stations */}
       {(startStation || endStation) && (
-        <div className="p-2 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-gray-700 space-y-1.5">
+        <div className="p-2 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-gray-700 space-y-1.5 flex-shrink-0">
           {startStation && (
             <div className="flex items-center justify-between p-1.5 bg-white dark:bg-gray-800 rounded border border-blue-200 dark:border-blue-700">
               <div className="flex items-center space-x-1.5 min-w-0">
@@ -520,7 +503,7 @@ export default function StationSelector({ stations = [], isLoading }: StationSel
       )}
 
       {/* Station List */}
-      <div ref={containerRef} className="flex-1 bg-white dark:bg-gray-900">
+      <div ref={containerRef} className="flex-1 overflow-y-auto bg-white dark:bg-gray-900">
         {filteredStations.length === 0 ? (
           <div className="p-8 text-center text-gray-600 dark:text-gray-400">
             <p className="font-medium">
@@ -545,7 +528,7 @@ export default function StationSelector({ stations = [], isLoading }: StationSel
         ) : (
           <List
             key={`${showVisibleOnly}-${filter}-${filteredStations.length}`}
-            style={{ height: listHeight, width: '100%' }}
+            style={{ height: '400px', width: '100%' }}
             rowCount={filteredStations.length}
             rowHeight={73}
             overscanCount={10}

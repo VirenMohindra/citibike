@@ -3,6 +3,8 @@
  * Handles session generation and management for Lyft API
  */
 
+import type { NextResponse } from 'next/server';
+
 // ============================================
 // Session Types
 // ============================================
@@ -234,4 +236,35 @@ export function isValidSessionData(data: unknown): data is SessionData {
 export function isValidUuid(uuid: string): boolean {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(uuid);
+}
+
+// ============================================
+// Cookie Setting Helper
+// ============================================
+
+/**
+ * Set authentication cookies on a NextResponse
+ */
+export function setAuthCookies(
+  response: NextResponse,
+  tokens: {
+    accessToken: string;
+    refreshToken: string;
+    expiresAt: number;
+  }
+): void {
+  const accessTokenOptions = getAccessTokenCookieOptions();
+  const refreshTokenOptions = getRefreshTokenCookieOptions();
+
+  // Set access token (httpOnly)
+  response.cookies.set(SESSION_COOKIES.ACCESS_TOKEN, tokens.accessToken, accessTokenOptions);
+
+  // Set refresh token (httpOnly)
+  response.cookies.set(SESSION_COOKIES.REFRESH_TOKEN, tokens.refreshToken, refreshTokenOptions);
+
+  // Set expiry time (NOT httpOnly so client can read it for proactive refresh)
+  response.cookies.set('citibike_token_expires_at', tokens.expiresAt.toString(), {
+    ...accessTokenOptions,
+    httpOnly: false,
+  });
 }

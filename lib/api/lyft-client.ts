@@ -90,6 +90,37 @@ export class LyftApiClient extends BaseApiClient {
   // ============================================
 
   /**
+   * Refresh access token using refresh token
+   */
+  async refreshAccessToken(refreshToken: string): Promise<CitibikeAuthResponse> {
+    const credentials = this.requireCredentials();
+    const basicAuth = createBasicAuth(credentials.clientId, credentials.clientSecret);
+
+    const headers = createLyftHeaders({
+      clientSessionId: this.sessionInfo.clientSessionId,
+      xSession: this.sessionInfo.xSession,
+    });
+
+    const params = new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+    });
+
+    const response = await this.post<LyftApiResponse<OAuthTokenResponse>>(
+      LYFT_ENDPOINTS.OAUTH.TOKEN,
+      params,
+      {
+        headers: {
+          ...headers,
+          authorization: basicAuth,
+        },
+      }
+    );
+
+    return this.parseAuthResponse(response);
+  }
+
+  /**
    * Exchange phone and OTP for user access token
    */
   async verifyOtp(
