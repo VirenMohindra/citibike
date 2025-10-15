@@ -193,22 +193,46 @@ export default function TripErrorDebug({ userId }: { userId: string | null }) {
             {/* Error explanation */}
             <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
               {stat.errorCode === 'RATE_LIMITED' && (
-                <p dangerouslySetInnerHTML={{ __html: t('tripErrorDebug.errorExplanations.rateLimited') }} />
+                <p
+                  dangerouslySetInnerHTML={{
+                    __html: t('tripErrorDebug.errorExplanations.rateLimited'),
+                  }}
+                />
               )}
               {stat.errorCode === 'NOT_FOUND' && (
-                <p dangerouslySetInnerHTML={{ __html: t('tripErrorDebug.errorExplanations.notFound') }} />
+                <p
+                  dangerouslySetInnerHTML={{
+                    __html: t('tripErrorDebug.errorExplanations.notFound'),
+                  }}
+                />
               )}
               {stat.errorCode === 'HTTP_404' && (
-                <p dangerouslySetInnerHTML={{ __html: t('tripErrorDebug.errorExplanations.http404') }} />
+                <p
+                  dangerouslySetInnerHTML={{
+                    __html: t('tripErrorDebug.errorExplanations.http404'),
+                  }}
+                />
               )}
               {stat.errorCode === 'UNAUTHORIZED' && (
-                <p dangerouslySetInnerHTML={{ __html: t('tripErrorDebug.errorExplanations.unauthorized') }} />
+                <p
+                  dangerouslySetInnerHTML={{
+                    __html: t('tripErrorDebug.errorExplanations.unauthorized'),
+                  }}
+                />
               )}
               {stat.errorCode === 'NETWORK_ERROR' && (
-                <p dangerouslySetInnerHTML={{ __html: t('tripErrorDebug.errorExplanations.networkError') }} />
+                <p
+                  dangerouslySetInnerHTML={{
+                    __html: t('tripErrorDebug.errorExplanations.networkError'),
+                  }}
+                />
               )}
               {stat.errorCode === 'SERVER_ERROR' && (
-                <p dangerouslySetInnerHTML={{ __html: t('tripErrorDebug.errorExplanations.serverError') }} />
+                <p
+                  dangerouslySetInnerHTML={{
+                    __html: t('tripErrorDebug.errorExplanations.serverError'),
+                  }}
+                />
               )}
             </div>
           </div>
@@ -216,7 +240,10 @@ export default function TripErrorDebug({ userId }: { userId: string | null }) {
       </div>
 
       <div className="text-xs text-gray-500 dark:text-gray-400 pt-3 border-t border-gray-200 dark:border-gray-700">
-        <p className="mb-2" dangerouslySetInnerHTML={{ __html: t('tripErrorDebug.tips.rateLimitTip') }} />
+        <p
+          className="mb-2"
+          dangerouslySetInnerHTML={{ __html: t('tripErrorDebug.tips.rateLimitTip') }}
+        />
         <p>{t('tripErrorDebug.tips.permanentErrors')}</p>
       </div>
     </div>

@@ -234,27 +234,39 @@ export default function NormalizePage() {
               </h3>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-0.5">{t('normalizePage.features.checkmark')}</span>
+                  <span className="text-green-500 mt-0.5">
+                    {t('normalizePage.features.checkmark')}
+                  </span>
                   <span>{t('normalizePage.features.resolveStations')}</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-0.5">{t('normalizePage.features.checkmark')}</span>
+                  <span className="text-green-500 mt-0.5">
+                    {t('normalizePage.features.checkmark')}
+                  </span>
                   <span>{t('normalizePage.features.calculateDistances')}</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-0.5">{t('normalizePage.features.checkmark')}</span>
+                  <span className="text-green-500 mt-0.5">
+                    {t('normalizePage.features.checkmark')}
+                  </span>
                   <span>{t('normalizePage.features.calculateCosts')}</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-0.5">{t('normalizePage.features.checkmark')}</span>
+                  <span className="text-green-500 mt-0.5">
+                    {t('normalizePage.features.checkmark')}
+                  </span>
                   <span>{t('normalizePage.features.categorize')}</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-0.5">{t('normalizePage.features.checkmark')}</span>
+                  <span className="text-green-500 mt-0.5">
+                    {t('normalizePage.features.checkmark')}
+                  </span>
                   <span>{t('normalizePage.features.estimateSubway')}</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-0.5">{t('normalizePage.features.checkmark')}</span>
+                  <span className="text-green-500 mt-0.5">
+                    {t('normalizePage.features.checkmark')}
+                  </span>
                   <span>{t('normalizePage.features.calculateScores')}</span>
                 </li>
               </ul>
@@ -268,8 +280,10 @@ export default function NormalizePage() {
                     {t('normalizePage.progress.normalizing')}
                   </span>
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {progress.current}{t('normalizePage.progress.separator')}{progress.total} (
-                    {Math.round(progressPercent)}{t('normalizePage.progress.percentSymbol')})
+                    {progress.current}
+                    {t('normalizePage.progress.separator')}
+                    {progress.total} ({Math.round(progressPercent)}
+                    {t('normalizePage.progress.percentSymbol')})
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">

@@ -139,7 +139,9 @@ export default function Legend() {
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
-                  <span className="text-[6px] font-bold text-white">{t('legend.exampleBadgeValue')}</span>
+                  <span className="text-[6px] font-bold text-white">
+                    {t('legend.exampleBadgeValue')}
+                  </span>
                 </div>
                 <span>{t('legend.closeZoomDescription')}</span>
               </div>

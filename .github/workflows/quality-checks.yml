@@ -6,11 +6,16 @@ on:
   pull_request:
     branches: [main, develop]
 
-jobs:
-  quality:
-    name: Code Quality & Standards
-    runs-on: ubuntu-latest
+# Cancel in-progress runs for the same workflow + branch/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
+jobs:
+  # Install dependencies once and share across jobs
+  install:
+    name: Install Dependencies
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,48 +26,206 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
       - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+  # Parallel quality checks
+  prettier:
+    name: Prettier
+    runs-on: ubuntu-latest
+    needs: install
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Restore node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Run Prettier check
         run: npx prettier --check .
-        continue-on-error: false
+
+  lint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    needs: install
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Restore node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Run ESLint
         run: npm run lint
-        continue-on-error: false
 
-      - name: Run TypeScript compiler check
+  typecheck:
+    name: TypeScript
+    runs-on: ubuntu-latest
+    needs: install
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Restore node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Run TypeScript check
         run: npx tsc --noEmit
-        continue-on-error: false
 
-      - name: Run tests
-        run: npm test
-        continue-on-error: false
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: install
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Restore node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Build check
         run: npm run build
         env:
-          # Add any required env vars for build
-          NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: ${{ secrets.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || 'dummy-token-for-ci' }}
-        continue-on-error: false
+          NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: ${{ secrets.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || 'pk.dummy-token-for-ci-build-only' }}
 
-      - name: Comment PR with quality results
+  # E2E tests with matrix strategy for parallelization
+  e2e:
+    name: E2E Tests (${{ matrix.shard }}/4)
+    runs-on: ubuntu-latest
+    needs: install
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Restore node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Get Playwright version
+        id: playwright-version
+        run: echo "version=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version")" >> $GITHUB_OUTPUT
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Install Playwright system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - name: Run Playwright tests
+        run: npx playwright test --shard=${{ matrix.shard }}/4
+        env:
+          NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: ${{ secrets.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || 'pk.dummy-token-for-ci-build-only' }}
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results-${{ matrix.shard }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  # Summary job that gates PR merges
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    needs: [prettier, lint, typecheck, build, e2e]
+    if: always()
+    steps:
+      - name: Check results
+        run: |
+          if [[ "${{ needs.prettier.result }}" != "success" ]] || \
+             [[ "${{ needs.lint.result }}" != "success" ]] || \
+             [[ "${{ needs.typecheck.result }}" != "success" ]] || \
+             [[ "${{ needs.build.result }}" != "success" ]] || \
+             [[ "${{ needs.e2e.result }}" != "success" ]]; then
+            echo "❌ Quality checks failed"
+            exit 1
+          fi
+          echo "✅ All quality checks passed!"
+
+      - name: Comment on PR
         if: github.event_name == 'pull_request' && failure()
         uses: actions/github-script@v7
         with:
           script: |
+            const results = {
+              'Prettier': '${{ needs.prettier.result }}',
+              'ESLint': '${{ needs.lint.result }}',
+              'TypeScript': '${{ needs.typecheck.result }}',
+              'Build': '${{ needs.build.result }}',
+              'E2E Tests': '${{ needs.e2e.result }}'
+            };
+
+            const failed = Object.entries(results)
+              .filter(([_, status]) => status !== 'success')
+              .map(([name, status]) => `- ❌ ${name} (${status})`);
+
             const comment = '## ❌ Quality Checks Failed\n\n' +
-              'Please check the workflow logs for details on which checks failed:\n' +
-              '- Prettier formatting\n' +
-              '- ESLint linting\n' +
-              '- TypeScript type checking\n' +
-              '- Tests\n' +
-              '- Build\n\n' +
-              'Review the [Actions tab](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for more information.';
+              failed.join('\n') + '\n\n' +
+              `Review the [Actions tab](${context.payload.repository.html_url}/actions/runs/${context.runId}) for details.`;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
@@ -70,19 +233,3 @@ jobs:
               repo: context.repo.repo,
               body: comment
             });
-
-  summary:
-    name: Quality Summary
-    runs-on: ubuntu-latest
-    needs: quality
-    if: always()
-
-    steps:
-      - name: Check quality results
-        run: |
-          if [ "${{ needs.quality.result }}" == "success" ]; then
-            echo "✅ All quality checks passed!"
-          else
-            echo "❌ Quality checks failed. Please review the errors above."
-            exit 1
-          fi
