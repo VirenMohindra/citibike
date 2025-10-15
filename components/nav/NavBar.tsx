@@ -8,6 +8,7 @@ import UnitToggle from './UnitToggle';
 import BikeAngelToggle from './BikeAngelToggle';
 import CitibikeLogin from './CitibikeLogin';
 import { CitySelector } from './CitySelector';
+import MobileMenu from './MobileMenu';
 import { ReactNode } from 'react';
 
 interface NavBarProps {
@@ -31,7 +32,8 @@ export default function NavBar({ children }: NavBarProps) {
           </h1>
         </Link>
 
-        <div className="flex items-center gap-4">
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center gap-4">
           {children}
           <CitySelector />
           <Link
@@ -64,6 +66,9 @@ export default function NavBar({ children }: NavBarProps) {
           <ThemeToggle />
           <CitibikeLogin compact />
         </div>
+
+        {/* Mobile Hamburger Menu */}
+        <MobileMenu />
       </div>
     </header>
   );

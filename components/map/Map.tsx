@@ -62,6 +62,8 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
   const markers = useRef<Map<string, MarkerData>>(new Map());
   const sharedPopup = useRef<mapboxgl.Popup | null>(null);
   const stationsRef = useRef<StationWithStatus[]>(stations); // Stage 5: Ref for event delegation
+  const startStationRef = useRef<StationWithStatus | null>(null); // Track current start station for GPU handler
+  const endStationRef = useRef<StationWithStatus | null>(null); // Track current end station for GPU handler
   const [mapLoaded, setMapLoaded] = useState(false);
   const [zoom, setZoom] = useState(cityConfig.defaultZoom);
   const [bounds, setBounds] = useState<mapboxgl.LngLatBounds | null>(null);
@@ -94,10 +96,18 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
     enabled: !!citibikeUser && showBikeAngelRewards,
   });
 
-  // Keep stationsRef up to date for event delegation (Stage 5 optimization)
+  // Keep refs up to date for event delegation (Stage 5 optimization)
   useEffect(() => {
     stationsRef.current = stations;
   }, [stations]);
+
+  useEffect(() => {
+    startStationRef.current = startStation;
+  }, [startStation]);
+
+  useEffect(() => {
+    endStationRef.current = endStation;
+  }, [endStation]);
 
   // DEBUG: Helper function to create a circle polygon (for visualizing the radius)
   const createCirclePolygon = useCallback(
@@ -410,14 +420,31 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
           const station = stationsRef.current.find((s) => s.station_id === stationId);
           if (!station) return;
 
-          // Handle station selection
-          if (!startStation) {
+          // Handle station selection - use refs to get current state (not stale closure)
+          const currentStart = startStationRef.current;
+          const currentEnd = endStationRef.current;
+
+          if (!currentStart) {
+            // No start station - set it (even if end exists)
             setStartStation(station);
-          } else if (!endStation && station.station_id !== startStation.station_id) {
-            setEndStation(station);
+          } else if (!currentEnd) {
+            // Have start but no end - set end
+            if (station.station_id !== currentStart.station_id) {
+              setEndStation(station);
+            }
           } else {
-            setStartStation(null);
-            setEndStation(null);
+            // Have both start and end
+            if (
+              station.station_id === currentStart.station_id ||
+              station.station_id === currentEnd.station_id
+            ) {
+              // Clicking one of the current route stations - clear route
+              setStartStation(null);
+              setEndStation(null);
+            } else {
+              // Clicking a different station - update the end station
+              setEndStation(station);
+            }
           }
         };
 
@@ -789,13 +816,31 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
 
         el.addEventListener('click', (e) => {
           e.stopPropagation();
-          if (!startStation) {
+          // Use refs to get current state (not stale closure)
+          const currentStart = startStationRef.current;
+          const currentEnd = endStationRef.current;
+
+          if (!currentStart) {
+            // No start station - set it (even if end exists)
             setStartStation(station);
-          } else if (!endStation && station.station_id !== startStation.station_id) {
-            setEndStation(station);
+          } else if (!currentEnd) {
+            // Have start but no end - set end
+            if (station.station_id !== currentStart.station_id) {
+              setEndStation(station);
+            }
           } else {
-            setStartStation(null);
-            setEndStation(null);
+            // Have both start and end
+            if (
+              station.station_id === currentStart.station_id ||
+              station.station_id === currentEnd.station_id
+            ) {
+              // Clicking one of the current route stations - clear route
+              setStartStation(null);
+              setEndStation(null);
+            } else {
+              // Clicking a different station - update the end station
+              setEndStation(station);
+            }
           }
         });
 

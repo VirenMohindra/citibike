@@ -154,12 +154,25 @@ export default function StationSelector({ stations = [], isLoading }: StationSel
 
   const handleStationClick = (station: StationWithStatus) => {
     if (!startStation) {
+      // No start station - set it (even if end exists)
       setStartStation(station);
-    } else if (!endStation && station.station_id !== startStation.station_id) {
-      setEndStation(station);
+    } else if (!endStation) {
+      // Have start but no end - set end
+      if (station.station_id !== startStation.station_id) {
+        setEndStation(station);
+      }
     } else {
-      clearRoute();
-      setStartStation(station);
+      // Have both start and end
+      if (
+        station.station_id === startStation.station_id ||
+        station.station_id === endStation.station_id
+      ) {
+        // Clicking one of the current route stations - clear route
+        clearRoute();
+      } else {
+        // Clicking a different station - update the end station
+        setEndStation(station);
+      }
     }
   };
 
@@ -561,6 +574,7 @@ export default function StationSelector({ stations = [], isLoading }: StationSel
               return (
                 <div
                   key={station.station_id}
+                  role="listitem"
                   onClick={() => handleStationClick(station)}
                   className={`w-full p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer relative border-b border-gray-200 dark:border-gray-700 ${
                     isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : ''
