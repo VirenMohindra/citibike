@@ -3,7 +3,7 @@
 
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { getLyftClient } from '@/lib/api';
+import { getLyftClient } from '@/lib/api/lyft-client';
 
 export async function GET() {
   try {

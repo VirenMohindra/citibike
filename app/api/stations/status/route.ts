@@ -5,6 +5,8 @@
 
 import { NextResponse } from 'next/server';
 import { buildCityGbfsUrl, DEFAULT_CITY_ID } from '@/config/cities';
+import { GBFS_ENDPOINTS } from '@/lib/gbfs';
+import { createErrorResponse } from '@/lib/api/response-helpers';
 
 export async function GET(request: Request) {
   try {
@@ -12,7 +14,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const cityId = searchParams.get('city') || DEFAULT_CITY_ID;
 
-    const url = buildCityGbfsUrl(cityId, '/station_status.json');
+    const url = buildCityGbfsUrl(cityId, GBFS_ENDPOINTS.STATION_STATUS);
 
     const response = await fetch(url, {
       next: {
@@ -34,10 +36,10 @@ export async function GET(request: Request) {
     console.error('Failed to fetch station status:', error);
 
     return NextResponse.json(
-      {
-        error: 'Failed to fetch station status',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
+      createErrorResponse(
+        'Failed to fetch station status',
+        error instanceof Error ? error.message : 'Unknown error'
+      ),
       { status: 500 }
     );
   }

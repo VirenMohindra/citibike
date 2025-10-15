@@ -372,6 +372,32 @@
     },
     "selectStations": "Select start and end stations to choose route preference"
   },
+  "routePopularity": {
+    "loading": "Loading route data...",
+    "noData": "This route hasn't been recorded in the public data yet. It might be a new or rarely-used route.",
+    "totalTripsRecorded": "total trips recorded",
+    "statistics": "Route Statistics",
+    "avgDuration": "Avg Duration",
+    "minutes": "min",
+    "avgDistance": "Avg Distance",
+    "miles": "mi",
+    "ebikeUsage": "E-bike Usage",
+    "memberUsage": "Member Usage",
+    "percent": "%",
+    "mostPopularTimes": "Most Popular Times",
+    "timeLabels": {
+      "morning_rush": "Morning Rush (7-10am)",
+      "midday": "Midday (10am-4pm)",
+      "evening_rush": "Evening Rush (4-8pm)",
+      "night": "Night (8pm-7am)"
+    },
+    "insights": {
+      "veryPopular": "🔥 This is one of the most popular routes! Expect consistent bike availability at both stations.",
+      "popular": "✅ This is a well-traveled route with reliable service patterns.",
+      "moderate": "💡 This route has moderate usage. Check real-time availability during peak hours.",
+      "rare": "🌟 You're pioneering a less-common route! Double-check bike availability before heading out."
+    }
+  },
   "navigation": {
     "title": "Navigation",
     "steps": "{{count}} steps",
@@ -409,7 +435,8 @@
     "farZoomDescription": "Far zoom: Yellow dots mark BA stations",
     "mediumZoomDescription": "Medium zoom: Colored top borders",
     "closeZoomDescription": "Close zoom: Point badges with directions",
-    "zoomLevelsHelp": "Zoom levels show different details. Zoom in to see exact point values and pickup/dropoff directions."
+    "zoomLevelsHelp": "Zoom levels show different details. Zoom in to see exact point values and pickup/dropoff directions.",
+    "exampleBadgeValue": "4"
   },
   "userProfile": {
     "logout": "Logout",
@@ -496,6 +523,10 @@
     "bikeIcon": "🚲",
     "classic": "classic",
     "ebike": "e-bike",
+    "avgTripsPerMonth": "Avg Trips / Month",
+    "basedOn": "Based on",
+    "ridesCount": "rides",
+    "longestTrip": "Longest Trip",
     "topStartStations": "Top Start Stations",
     "storedLocally": "stored locally",
     "distanceEstimatedMiles": "Distance and speed estimated from ride duration (~9 mph avg)",
@@ -535,8 +566,11 @@
     "title": "Select Stations",
     "searchPlaceholder": "Search stations...",
     "gettingLocation": "Getting location...",
+    "finding": "Finding...",
     "findNearest": "Find Nearest",
+    "nearest": "Nearest",
     "clear": "Clear",
+    "closeSymbol": "✕",
     "nearestStations": "Showing 10 nearest stations to your location",
     "visibleStations": "Showing stations visible on map",
     "all": "All",
@@ -605,6 +639,10 @@
     "viewDetails": "View Details",
     "selectTrip": "Select a trip to view details",
     "selectedTrip": "Selected Trip",
+    "debugButton": "🐛 Debug",
+    "heatmapIcon": "🔥",
+    "statisticsIcon": "📊",
+    "debugIcon": "🐛",
     "sync": {
       "allSynced": "All trips synced",
       "statsText": "trips with routes",
@@ -701,7 +739,7 @@
     "syncStatus": "Sync Status",
     "allTrips": "All Trips",
     "synced": "Synced",
-    "unsynced": "Unsynced"
+    "unsynced": "⏳ Unsynced"
   },
   "tripComparison": {
     "title": "How This Trip Compares",
@@ -737,6 +775,288 @@
     "times": "x",
     "replayingAt": "Replaying at",
     "xSpeed": "x speed"
+  },
+  "tripErrorDebug": {
+    "noErrors": "✅ No trips with errors!",
+    "title": "Trip Fetch Errors ({{count}} trips)",
+    "resetting": "Resetting...",
+    "resetAll": "Reset All",
+    "trip": "trip",
+    "trips": "trips",
+    "reset": "Reset",
+    "highRetryCounts": "High retry counts:",
+    "attempts": "attempts",
+    "errorExplanations": {
+      "rateLimited": "⚠️ <strong>Rate Limited:</strong> Too many requests. Wait before retrying.",
+      "notFound": "🔍 <strong>Not Found:</strong> Trip IDs don't exist in Lyft's system (deleted or invalid).",
+      "http404": "🔍 <strong>HTTP 404:</strong> Trip IDs don't exist in Lyft's system (deleted or invalid).",
+      "unauthorized": "🔐 <strong>Unauthorized:</strong> Session expired. Log in again.",
+      "networkError": "🌐 <strong>Network Error:</strong> Connection issue or server unreachable.",
+      "serverError": "🔧 <strong>Server Error:</strong> Lyft API returned 500+ error."
+    },
+    "tips": {
+      "rateLimitTip": "<strong>Tip:</strong> Reset rate-limited trips and wait 1 hour before retrying.",
+      "permanentErrors": "Trips with NOT_FOUND or HTTP_404 errors are likely permanently unavailable."
+    }
+  },
+  "publicDataImport": {
+    "title": "Public Trip Data Import",
+    "description": "Import aggregate Citibike trip data for benchmarking analysis. Download CSV files from",
+    "dataSourceLink": "s3.amazonaws.com/tripdata",
+    "convertInstructions": ", then convert to JSON using",
+    "scriptCommand": "tsx scripts/import-public-data.ts",
+    "loadingStats": "Loading statistics...",
+    "currentData": "Current Data",
+    "totalTrips": "Total Trips",
+    "ebikes": "E-bikes",
+    "members": "Members",
+    "percent": "%",
+    "avgDistance": "Avg Distance",
+    "datasets": "Datasets:",
+    "clearAllData": "Clear all data",
+    "noDataYet": "No public trip data imported yet. Upload a JSON file to get started.",
+    "datasetMonthLabel": "Dataset Month (YYYY-MM)",
+    "datasetMonthPlaceholder": "2025-09",
+    "datasetMonthHelp": "The month this dataset represents (e.g., 2025-09 for September 2025)",
+    "jsonFileLabel": "JSON File",
+    "jsonFileHelp": "Select the JSON file generated by the import script",
+    "progressTrips": "trips",
+    "importComplete": "Import Complete",
+    "importFailed": "Import Failed",
+    "imported": "Imported",
+    "skipped": "Skipped",
+    "errors": "Errors",
+    "howToImportTitle": "How to Import Data",
+    "step1": "Download a CSV file from",
+    "citibikeOpenData": "Citibike Open Data",
+    "step2": "Convert to JSON:",
+    "step2Command": "tsx scripts/import-public-data.ts your-file.csv",
+    "step3": "Upload the generated JSON file using the form above",
+    "step4": "Wait for import to complete (large files may take a few minutes)"
+  },
+  "benchmarkingDashboard": {
+    "loading": "Loading benchmarking data...",
+    "header": {
+      "title": "Usage Benchmarking",
+      "subtitle": "Comparing your {{personalTrips}} trips to {{publicTrips}} aggregate public trips"
+    },
+    "noPublicData": {
+      "title": "No Public Data Available",
+      "description": "Import public trip data to see how your usage compares to other Citibike users.",
+      "linkText": "Import Public Data →"
+    },
+    "noPersonalTrips": {
+      "title": "No Personal Trips",
+      "description": "Log in to Citibike and sync your trip data to see personalized benchmarking insights."
+    },
+    "stats": {
+      "ebikeUsage": {
+        "label": "E-bike Usage"
+      },
+      "avgDuration": {
+        "label": "Avg Trip Duration"
+      },
+      "avgDistance": {
+        "label": "Avg Trip Distance"
+      }
+    },
+    "comparison": {
+      "vsAverage": "vs average"
+    },
+    "units": {
+      "percent": "%",
+      "minutes": "min",
+      "miles": "mi"
+    },
+    "ridingPatterns": {
+      "title": "Riding Patterns",
+      "you": "You:",
+      "average": "Average:",
+      "moreUsage": "You ride {{difference}}% more during this time",
+      "lessUsage": "You ride {{difference}}% less during this time"
+    },
+    "timeOfDay": {
+      "morningRush": "Morning Rush (7-10am)",
+      "midday": "Midday (10am-4pm)",
+      "eveningRush": "Evening Rush (4-8pm)",
+      "night": "Night (8pm-7am)"
+    },
+    "bikeTypeComparison": {
+      "title": "E-bike vs Classic Comparison",
+      "ebike": {
+        "title": "E-bike Trips (Average User)"
+      },
+      "classic": {
+        "title": "Classic Trips (Average User)"
+      },
+      "avgDuration": "Avg Duration",
+      "avgDistance": "Avg Distance",
+      "memberUsage": "Member Usage"
+    },
+    "insights": {
+      "ebikeDistance": "💡 E-bike trips are typically {{percentage}}% longer in distance on average"
+    }
+  },
+  "normalizePage": {
+    "login": {
+      "message": "Please log in to normalize your trip data",
+      "goHomeButton": "Go to Home"
+    },
+    "header": {
+      "title": "Trip Data Normalization",
+      "description": "Enhance your trip data with detailed analysis and insights"
+    },
+    "stats": {
+      "totalTrips": "Total Trips",
+      "normalized": "Normalized",
+      "toNormalize": "To Normalize"
+    },
+    "hourlyRate": {
+      "label": "Your Hourly Rate (for time value calculation)",
+      "currencySymbol": "$",
+      "unit": "/hour",
+      "description": "Used to calculate time value savings"
+    },
+    "features": {
+      "title": "What gets normalized:",
+      "checkmark": "✓",
+      "resolveStations": "Resolve \"Unknown\" station names using GBFS coordinates",
+      "calculateDistances": "Calculate accurate distances (from polylines or haversine)",
+      "calculateCosts": "Calculate trip costs (e-bike fees, overage fees)",
+      "categorize": "Categorize by distance, duration, and time of day",
+      "estimateSubway": "Estimate subway alternative times",
+      "calculateScores": "Calculate suitability scores and net value"
+    },
+    "progress": {
+      "normalizing": "Normalizing trips...",
+      "separator": " / ",
+      "percentSymbol": "%"
+    },
+    "errors": {
+      "title": "Error",
+      "icon": "⚠️",
+      "loadStatsFailed": "Failed to load statistics",
+      "fetchStationsFailed": "Failed to fetch station data",
+      "normalizationFailed": "Normalization failed"
+    },
+    "success": {
+      "title": "Success!",
+      "icon": "✅",
+      "message": "All trips have been normalized. You can now view detailed analytics."
+    },
+    "buttons": {
+      "normalizing": "Normalizing...",
+      "allNormalized": "All Trips Normalized ✓",
+      "normalize": "Normalize {{count}} Trips",
+      "viewAnalytics": "View Analytics →",
+      "cancel": "Cancel"
+    }
+  },
+  "economicsPage": {
+    "errors": {
+      "loginRequired": "Please log in to view your trip economics",
+      "noTripData": "No trip data found. Please sync your trips first."
+    },
+    "actions": {
+      "goToHome": "Go to Home",
+      "goToTrips": "Go to Trips"
+    },
+    "loading": {
+      "economicsData": "Loading economics data..."
+    },
+    "header": {
+      "title": "Transportation Economics",
+      "description": "Analyze your Citibike usage and compare costs to subway alternatives"
+    },
+    "monthSelector": {
+      "label": "Select Month"
+    },
+    "cards": {
+      "totalTrips": {
+        "title": "Total Trips",
+        "classic": "classic",
+        "ebike": "e-bike"
+      },
+      "totalCost": {
+        "title": "Total Cost",
+        "perTrip": "per trip"
+      },
+      "savings": {
+        "title": "Savings vs Subway",
+        "vsOptimalSubway": "vs optimal subway"
+      },
+      "netValue": {
+        "title": "Total Net Value",
+        "description": "Cost + time + health value"
+      }
+    },
+    "costBreakdown": {
+      "citibike": {
+        "title": "Citibike Cost Breakdown",
+        "membership": "Membership",
+        "ebikeFees": "E-bike Fees",
+        "overageFees": "Overage Fees",
+        "total": "Total"
+      },
+      "subway": {
+        "title": "Subway Alternative Cost",
+        "payPerRide": "Pay-per-ride ($2.90)",
+        "unlimited": "Unlimited ($132)",
+        "optimalChoice": "Optimal Choice",
+        "yourSavings": "Your Savings"
+      }
+    },
+    "timeValue": {
+      "usagePattern": {
+        "title": "Usage Pattern",
+        "classicBikes": "Classic Bikes",
+        "ebikes": "E-bikes",
+        "avgClassicDuration": "Avg classic duration",
+        "avgEbikeDuration": "Avg e-bike duration"
+      },
+      "timeSavings": {
+        "title": "Time Savings",
+        "avgPerTrip": "average per trip vs subway",
+        "totalThisMonth": "total time saved this month"
+      },
+      "valuePerTrip": {
+        "title": "Value per Trip",
+        "avgNetValue": "average net value per trip",
+        "includes": "Includes cost savings, time value, and health benefits"
+      }
+    },
+    "breakeven": {
+      "title": "Breakeven Analysis",
+      "currentUsage": {
+        "title": "Your Current Usage",
+        "avgTripsPerMonth": "Avg trips/month",
+        "ebikeUsage": "E-bike usage",
+        "avgCostPerMonth": "Avg cost/month"
+      },
+      "points": {
+        "title": "Breakeven Points",
+        "vsPayPerRide": "vs Pay-per-ride",
+        "vsUnlimited": "vs Unlimited"
+      },
+      "scenarios": {
+        "title": "Cost Scenarios (per month)",
+        "allClassicUnder45": "All Classic <45min",
+        "allEbike": "All E-bike",
+        "optimal": "Optimal Citibike",
+        "currentSubway": "Current Subway"
+      }
+    },
+    "navigation": {
+      "backToTrips": "← Back to Trips",
+      "normalizeData": "Normalize Data",
+      "importPublicData": "Import Public Data"
+    },
+    "units": {
+      "min": "min",
+      "trips": "trips",
+      "percent": "%",
+      "currency": "$"
+    }
   },
   "privacy": {
     "title": "Privacy Policy",

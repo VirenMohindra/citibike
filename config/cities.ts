@@ -247,6 +247,7 @@ export function getAllCities(): CityConfig[] {
 
 /**
  * Get city ID from URL-friendly slug
+ * eg "new-york-city" -> "nyc" which can be used like /nyc for the URLs
  */
 export function getCityIdFromSlug(slug: string): string {
   const normalized = slug.toLowerCase().trim();

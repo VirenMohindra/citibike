@@ -18,13 +18,6 @@ export const API_CONFIG = {
     BASE_URL: process.env.NEXT_PUBLIC_GBFS_API_URL || 'https://gbfs.citibikenyc.com',
     VERSION: 'gbfs/en',
   },
-
-  // Mapbox API (for routing)
-  MAPBOX: {
-    BASE_URL: 'https://api.mapbox.com',
-    DIRECTIONS_VERSION: 'directions/v5',
-    GEOCODING_VERSION: 'geocoding/v5',
-  },
 } as const;
 
 // ============================================
@@ -59,50 +52,6 @@ export const LYFT_ENDPOINTS = {
     MAP_ITEMS: '/v1/last-mile/map-items',
   },
 };
-
-// ============================================
-// GBFS API Endpoints
-// ============================================
-export const GBFS_ENDPOINTS = {
-  DISCOVERY: '/gbfs.json',
-  SYSTEM_INFO: '/system_information.json',
-  STATION_INFO: '/station_information.json',
-  STATION_STATUS: '/station_status.json',
-  SYSTEM_REGIONS: '/system_regions.json',
-  SYSTEM_ALERTS: '/system_alerts.json',
-  VEHICLE_TYPES: '/vehicle_types.json',
-  PRICING_PLANS: '/system_pricing_plans.json',
-};
-
-// ============================================
-// Build URL Helpers
-// ============================================
-
-/**
- * Build full Lyft API URL
- */
-export function buildLyftUrl(endpoint: string): string {
-  return `${API_CONFIG.LYFT.BASE_URL}${endpoint}`;
-}
-
-/**
- * Build full GBFS API URL
- */
-export function buildGbfsUrl(endpoint: string): string {
-  return `${API_CONFIG.GBFS.BASE_URL}/${API_CONFIG.GBFS.VERSION}${endpoint}`;
-}
-
-/**
- * Build Mapbox Directions API URL
- */
-export function buildMapboxDirectionsUrl(
-  coordinates: Array<[number, number]>,
-  profile: string = 'mapbox/cycling',
-  token: string
-): string {
-  const coords = coordinates.map((c) => c.join(',')).join(';');
-  return `${API_CONFIG.MAPBOX.BASE_URL}/${API_CONFIG.MAPBOX.DIRECTIONS_VERSION}/${profile}/${coords}?access_token=${token}&geometries=geojson&steps=true&overview=full`;
-}
 
 // ============================================
 // Default Headers
@@ -218,7 +167,7 @@ export const REQUEST_CONFIG = {
 } as const;
 
 // ============================================
-// Response Types
+// API Response Types
 // ============================================
 
 export enum ResponseStatus {
@@ -227,7 +176,7 @@ export enum ResponseStatus {
   CHALLENGE_REQUIRED = 'challenge_required',
 }
 
-export interface ApiResponse<T> {
+export interface ApiResponse<T = unknown> {
   status: ResponseStatus;
   data?: T;
   error?: string;

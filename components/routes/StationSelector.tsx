@@ -239,7 +239,7 @@ export default function StationSelector({ stations = [], isLoading }: StationSel
               {locationLoading ? (
                 <>
                   <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Finding...</span>
+                  <span>{t('stationSelector.finding')}</span>
                 </>
               ) : (
                 <>
@@ -262,7 +262,7 @@ export default function StationSelector({ stations = [], isLoading }: StationSel
                       d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                     />
                   </svg>
-                  <span>Nearest</span>
+                  <span>{t('stationSelector.nearest')}</span>
                 </>
               )}
             </button>
@@ -302,7 +302,7 @@ export default function StationSelector({ stations = [], isLoading }: StationSel
                 }}
                 className="px-2 py-1.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-xs font-medium"
               >
-                ✕
+                {t('stationSelector.closeSymbol')}
               </button>
             )}
           </div>

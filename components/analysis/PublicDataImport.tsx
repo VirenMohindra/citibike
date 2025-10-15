@@ -8,8 +8,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { usePublicTripImport } from '@/lib/db/hooks/usePublicTripImport';
+import { useI18n } from '@/lib/i18n';
 
 export default function PublicDataImport() {
+  const { t } = useI18n();
   const {
     progress,
     result,
@@ -62,21 +64,21 @@ export default function PublicDataImport() {
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Public Trip Data Import
+          {t('publicDataImport.title')}
         </h2>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Import aggregate Citibike trip data for benchmarking analysis. Download CSV files from{' '}
+          {t('publicDataImport.description')}{' '}
           <a
             href="https://s3.amazonaws.com/tripdata/index.html"
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 hover:underline dark:text-blue-400"
           >
-            s3.amazonaws.com/tripdata
+            {t('publicDataImport.dataSourceLink')}
           </a>
-          , then convert to JSON using{' '}
+          {t('publicDataImport.convertInstructions')}{' '}
           <code className="text-xs bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">
-            tsx scripts/import-public-data.ts
+            {t('publicDataImport.scriptCommand')}
           </code>
         </p>
       </div>
@@ -84,37 +86,37 @@ export default function PublicDataImport() {
       {/* Current Stats */}
       {isLoadingStats ? (
         <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Loading statistics...</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{t('publicDataImport.loadingStats')}</p>
         </div>
       ) : stats?.hasData ? (
         <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg space-y-3">
-          <h3 className="font-semibold text-gray-900 dark:text-white">Current Data</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white">{t('publicDataImport.currentData')}</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <div className="text-gray-600 dark:text-gray-400">Total Trips</div>
+              <div className="text-gray-600 dark:text-gray-400">{t('publicDataImport.totalTrips')}</div>
               <div className="text-lg font-bold text-gray-900 dark:text-white">
                 {stats.totalTrips.toLocaleString()}
               </div>
             </div>
             {stats.bikeTypes && (
               <div>
-                <div className="text-gray-600 dark:text-gray-400">E-bikes</div>
+                <div className="text-gray-600 dark:text-gray-400">{t('publicDataImport.ebikes')}</div>
                 <div className="text-lg font-bold text-gray-900 dark:text-white">
-                  {stats.bikeTypes.ebikePercent.toFixed(1)}%
+                  {stats.bikeTypes.ebikePercent.toFixed(1)}{t('publicDataImport.percent')}
                 </div>
               </div>
             )}
             {stats.memberTypes && (
               <div>
-                <div className="text-gray-600 dark:text-gray-400">Members</div>
+                <div className="text-gray-600 dark:text-gray-400">{t('publicDataImport.members')}</div>
                 <div className="text-lg font-bold text-gray-900 dark:text-white">
-                  {stats.memberTypes.memberPercent.toFixed(1)}%
+                  {stats.memberTypes.memberPercent.toFixed(1)}{t('publicDataImport.percent')}
                 </div>
               </div>
             )}
             {stats.averages && (
               <div>
-                <div className="text-gray-600 dark:text-gray-400">Avg Distance</div>
+                <div className="text-gray-600 dark:text-gray-400">{t('publicDataImport.avgDistance')}</div>
                 <div className="text-lg font-bold text-gray-900 dark:text-white">
                   {stats.averages.distanceMiles.toFixed(2)} mi
                 </div>
@@ -123,7 +125,7 @@ export default function PublicDataImport() {
           </div>
           {stats.datasetMonths && stats.datasetMonths.length > 0 && (
             <div className="text-sm">
-              <span className="text-gray-600 dark:text-gray-400">Datasets: </span>
+              <span className="text-gray-600 dark:text-gray-400">{t('publicDataImport.datasets')} </span>
               <span className="text-gray-900 dark:text-white font-medium">
                 {stats.datasetMonths.join(', ')}
               </span>
@@ -133,13 +135,13 @@ export default function PublicDataImport() {
             onClick={handleClearData}
             className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
           >
-            Clear all data
+            {t('publicDataImport.clearAllData')}
           </button>
         </div>
       ) : (
         <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
           <p className="text-sm text-gray-700 dark:text-gray-300">
-            No public trip data imported yet. Upload a JSON file to get started.
+            {t('publicDataImport.noDataYet')}
           </p>
         </div>
       )}
@@ -151,20 +153,20 @@ export default function PublicDataImport() {
             htmlFor="dataset-month"
             className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
           >
-            Dataset Month (YYYY-MM)
+            {t('publicDataImport.datasetMonthLabel')}
           </label>
           <input
             type="text"
             id="dataset-month"
             value={datasetMonth}
             onChange={(e) => setDatasetMonth(e.target.value)}
-            placeholder="2025-09"
+            placeholder={t('publicDataImport.datasetMonthPlaceholder')}
             pattern="\d{4}-\d{2}"
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             disabled={isImporting}
           />
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            The month this dataset represents (e.g., 2025-09 for September 2025)
+            {t('publicDataImport.datasetMonthHelp')}
           </p>
         </div>
 
@@ -173,7 +175,7 @@ export default function PublicDataImport() {
             htmlFor="file-input"
             className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
           >
-            JSON File
+            {t('publicDataImport.jsonFileLabel')}
           </label>
           <input
             ref={fileInputRef}
@@ -193,7 +195,7 @@ export default function PublicDataImport() {
                      disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Select the JSON file generated by the import script
+            {t('publicDataImport.jsonFileHelp')}
           </p>
         </div>
       </div>
@@ -206,7 +208,7 @@ export default function PublicDataImport() {
               {progress.message}
             </span>
             <span className="text-sm text-gray-600 dark:text-gray-400">
-              {progress.percentComplete}%
+              {progress.percentComplete}{t('publicDataImport.percent')}
             </span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -216,7 +218,7 @@ export default function PublicDataImport() {
             />
           </div>
           <p className="text-xs text-gray-600 dark:text-gray-400">
-            {progress.current.toLocaleString()} / {progress.total.toLocaleString()} trips
+            {progress.current.toLocaleString()} / {progress.total.toLocaleString()} {t('publicDataImport.progressTrips')}
           </p>
         </div>
       )}
@@ -235,7 +237,7 @@ export default function PublicDataImport() {
                 : 'text-red-900 dark:text-red-100'
             }`}
           >
-            {result.success ? 'Import Complete' : 'Import Failed'}
+            {result.success ? t('publicDataImport.importComplete') : t('publicDataImport.importFailed')}
           </h3>
           <p
             className={`text-sm mb-3 ${
@@ -255,7 +257,7 @@ export default function PublicDataImport() {
                     : 'text-red-600 dark:text-red-400'
                 }
               >
-                Imported
+                {t('publicDataImport.imported')}
               </div>
               <div
                 className={`text-lg font-bold ${
@@ -275,7 +277,7 @@ export default function PublicDataImport() {
                     : 'text-red-600 dark:text-red-400'
                 }
               >
-                Skipped
+                {t('publicDataImport.skipped')}
               </div>
               <div
                 className={`text-lg font-bold ${
@@ -295,7 +297,7 @@ export default function PublicDataImport() {
                     : 'text-red-600 dark:text-red-400'
                 }
               >
-                Errors
+                {t('publicDataImport.errors')}
               </div>
               <div
                 className={`text-lg font-bold ${
@@ -313,27 +315,27 @@ export default function PublicDataImport() {
 
       {/* Instructions */}
       <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">How to Import Data</h3>
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t('publicDataImport.howToImportTitle')}</h3>
         <ol className="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-decimal list-inside">
           <li>
-            Download a CSV file from{' '}
+            {t('publicDataImport.step1')}{' '}
             <a
               href="https://s3.amazonaws.com/tripdata/index.html"
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 hover:underline dark:text-blue-400"
             >
-              Citibike Open Data
+              {t('publicDataImport.citibikeOpenData')}
             </a>
           </li>
           <li>
-            Convert to JSON:{' '}
+            {t('publicDataImport.step2')}{' '}
             <code className="text-xs bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded">
-              tsx scripts/import-public-data.ts your-file.csv
+              {t('publicDataImport.step2Command')}
             </code>
           </li>
-          <li>Upload the generated JSON file using the form above</li>
-          <li>Wait for import to complete (large files may take a few minutes)</li>
+          <li>{t('publicDataImport.step3')}</li>
+          <li>{t('publicDataImport.step4')}</li>
         </ol>
       </div>
     </div>

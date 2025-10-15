@@ -8,6 +8,8 @@
 // ============================================
 export const PAGES = {
   HOME: '/',
+  PRIVACY: '/privacy',
+  TERMS: '/terms',
   // Future pages
   STATS: '/stats',
   TRIPS: '/trips',

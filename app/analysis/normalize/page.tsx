@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-no-literals */
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
@@ -6,9 +5,13 @@ import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/lib/store';
 import { db } from '@/lib/db/schema';
 import { type MinimalStation, normalizeTrip } from '@/lib/db/utils';
+import { buildCityGbfsUrl, DEFAULT_CITY_ID } from '@/config/cities';
+import { GBFS_ENDPOINTS } from '@/lib/gbfs';
 import NavBar from '@/components/nav/NavBar';
+import { useI18n } from '@/lib/i18n';
 
 export default function NormalizePage() {
+  const { t } = useI18n();
   const router = useRouter();
   const { citibikeUser } = useAppStore();
   const [status, setStatus] = useState<'idle' | 'loading' | 'normalizing' | 'complete' | 'error'>(
@@ -40,10 +43,10 @@ export default function NormalizePage() {
       setStatus('idle');
     } catch (err) {
       console.error('Failed to load stats:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load statistics');
+      setError(err instanceof Error ? err.message : t('normalizePage.errors.loadStatsFailed'));
       setStatus('error');
     }
-  }, [citibikeUser]);
+  }, [citibikeUser, t]);
 
   useEffect(() => {
     loadStats();
@@ -59,9 +62,10 @@ export default function NormalizePage() {
     try {
       // 1. Fetch GBFS stations
       console.log('Fetching GBFS stations...');
-      const response = await fetch('https://gbfs.citibikenyc.com/gbfs/en/station_information.json');
+      const url = buildCityGbfsUrl(DEFAULT_CITY_ID, GBFS_ENDPOINTS.STATION_INFO);
+      const response = await fetch(url);
       if (!response.ok) {
-        throw new Error('Failed to fetch station data');
+        throw new Error(t('normalizePage.errors.fetchStationsFailed'));
       }
       const data = (await response.json()) as {
         data: {
@@ -123,7 +127,7 @@ export default function NormalizePage() {
       await loadStats();
     } catch (err) {
       console.error('Normalization failed:', err);
-      setError(err instanceof Error ? err.message : 'Normalization failed');
+      setError(err instanceof Error ? err.message : t('normalizePage.errors.normalizationFailed'));
       setStatus('error');
     }
   }
@@ -136,13 +140,13 @@ export default function NormalizePage() {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Please log in to normalize your trip data
+              {t('normalizePage.login.message')}
             </p>
             <button
               onClick={() => router.push('/')}
               className="px-6 py-3 bg-[#0066CC] text-white rounded-lg hover:bg-[#0052A3]"
             >
-              Go to Home
+              {t('normalizePage.login.goHomeButton')}
             </button>
           </div>
         </div>
@@ -160,29 +164,35 @@ export default function NormalizePage() {
         <div className="max-w-2xl w-full">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-              Trip Data Normalization
+              {t('normalizePage.header.title')}
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mb-8">
-              Enhance your trip data with detailed analysis and insights
+              {t('normalizePage.header.description')}
             </p>
 
             {/* Statistics */}
             {stats && (
               <div className="mb-8 grid grid-cols-3 gap-4">
                 <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Trips</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                    {t('normalizePage.stats.totalTrips')}
+                  </div>
                   <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                     {stats.totalTrips.toLocaleString()}
                   </div>
                 </div>
                 <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Normalized</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                    {t('normalizePage.stats.normalized')}
+                  </div>
                   <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                     {stats.normalizedTrips.toLocaleString()}
                   </div>
                 </div>
                 <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">To Normalize</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                    {t('normalizePage.stats.toNormalize')}
+                  </div>
                   <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                     {stats.toNormalize.toLocaleString()}
                   </div>
@@ -193,11 +203,13 @@ export default function NormalizePage() {
             {/* Hourly Rate Input */}
             <div className="mb-8">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Your Hourly Rate (for time value calculation)
+                {t('normalizePage.hourlyRate.label')}
               </label>
               <div className="flex items-center gap-4">
                 <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                    {t('normalizePage.hourlyRate.currencySymbol')}
+                  </span>
                   <input
                     type="number"
                     value={hourlyRate}
@@ -206,11 +218,11 @@ export default function NormalizePage() {
                     disabled={status === 'normalizing'}
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
-                    /hour
+                    {t('normalizePage.hourlyRate.unit')}
                   </span>
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Used to calculate time value savings
+                  {t('normalizePage.hourlyRate.description')}
                 </div>
               </div>
             </div>
@@ -218,32 +230,32 @@ export default function NormalizePage() {
             {/* What Gets Normalized */}
             <div className="mb-8 bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
               <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                What gets normalized:
+                {t('normalizePage.features.title')}
               </h3>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-0.5">✓</span>
-                  <span>Resolve &quot;Unknown&quot; station names using GBFS coordinates</span>
+                  <span className="text-green-500 mt-0.5">{t('normalizePage.features.checkmark')}</span>
+                  <span>{t('normalizePage.features.resolveStations')}</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-0.5">✓</span>
-                  <span>Calculate accurate distances (from polylines or haversine)</span>
+                  <span className="text-green-500 mt-0.5">{t('normalizePage.features.checkmark')}</span>
+                  <span>{t('normalizePage.features.calculateDistances')}</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-0.5">✓</span>
-                  <span>Calculate trip costs (e-bike fees, overage fees)</span>
+                  <span className="text-green-500 mt-0.5">{t('normalizePage.features.checkmark')}</span>
+                  <span>{t('normalizePage.features.calculateCosts')}</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-0.5">✓</span>
-                  <span>Categorize by distance, duration, and time of day</span>
+                  <span className="text-green-500 mt-0.5">{t('normalizePage.features.checkmark')}</span>
+                  <span>{t('normalizePage.features.categorize')}</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-0.5">✓</span>
-                  <span>Estimate subway alternative times</span>
+                  <span className="text-green-500 mt-0.5">{t('normalizePage.features.checkmark')}</span>
+                  <span>{t('normalizePage.features.estimateSubway')}</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-0.5">✓</span>
-                  <span>Calculate suitability scores and net value</span>
+                  <span className="text-green-500 mt-0.5">{t('normalizePage.features.checkmark')}</span>
+                  <span>{t('normalizePage.features.calculateScores')}</span>
                 </li>
               </ul>
             </div>
@@ -253,10 +265,11 @@ export default function NormalizePage() {
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Normalizing trips...
+                    {t('normalizePage.progress.normalizing')}
                   </span>
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {progress.current} / {progress.total} ({Math.round(progressPercent)}%)
+                    {progress.current}{t('normalizePage.progress.separator')}{progress.total} (
+                    {Math.round(progressPercent)}{t('normalizePage.progress.percentSymbol')})
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
@@ -272,9 +285,11 @@ export default function NormalizePage() {
             {error && (
               <div className="mb-8 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
                 <div className="flex items-start gap-3">
-                  <span className="text-red-500 text-xl">⚠️</span>
+                  <span className="text-red-500 text-xl">{t('normalizePage.errors.icon')}</span>
                   <div>
-                    <h4 className="font-semibold text-red-900 dark:text-red-100 mb-1">Error</h4>
+                    <h4 className="font-semibold text-red-900 dark:text-red-100 mb-1">
+                      {t('normalizePage.errors.title')}
+                    </h4>
                     <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
                   </div>
                 </div>
@@ -285,13 +300,13 @@ export default function NormalizePage() {
             {status === 'complete' && (
               <div className="mb-8 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                 <div className="flex items-start gap-3">
-                  <span className="text-green-500 text-xl">✅</span>
+                  <span className="text-green-500 text-xl">{t('normalizePage.success.icon')}</span>
                   <div>
                     <h4 className="font-semibold text-green-900 dark:text-green-100 mb-1">
-                      Success!
+                      {t('normalizePage.success.title')}
                     </h4>
                     <p className="text-sm text-green-700 dark:text-green-300">
-                      All trips have been normalized. You can now view detailed analytics.
+                      {t('normalizePage.success.message')}
                     </p>
                   </div>
                 </div>
@@ -308,10 +323,12 @@ export default function NormalizePage() {
                 className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
               >
                 {status === 'normalizing'
-                  ? 'Normalizing...'
+                  ? t('normalizePage.buttons.normalizing')
                   : stats?.toNormalize === 0
-                    ? 'All Trips Normalized ✓'
-                    : `Normalize ${stats?.toNormalize.toLocaleString()} Trips`}
+                    ? t('normalizePage.buttons.allNormalized')
+                    : t('normalizePage.buttons.normalize', {
+                        count: stats?.toNormalize?.toLocaleString() ?? '0',
+                      })}
               </button>
 
               {status === 'complete' && (
@@ -319,7 +336,7 @@ export default function NormalizePage() {
                   onClick={() => router.push('/analysis/economics')}
                   className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors"
                 >
-                  View Analytics →
+                  {t('normalizePage.buttons.viewAnalytics')}
                 </button>
               )}
 
@@ -327,7 +344,7 @@ export default function NormalizePage() {
                 onClick={() => router.push('/trips')}
                 className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors"
               >
-                Cancel
+                {t('normalizePage.buttons.cancel')}
               </button>
             </div>
           </div>

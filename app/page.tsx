@@ -12,7 +12,7 @@ import NavBar from '@/components/nav/NavBar';
 import { useAppStore } from '@/lib/store';
 import { mergeStationData } from '@/lib/gbfs';
 import { useUrlState } from '@/lib/useUrlState';
-import { API_ROUTES } from '@/config/routes';
+import { API_ROUTES, buildApiRoute } from '@/config/routes';
 import type { Station, StationStatus } from '@/lib/types';
 import { useI18n } from '@/lib/i18n';
 import { Share2 } from 'lucide-react';
@@ -29,8 +29,8 @@ function HomeContent() {
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
 
   // Build API URLs with city parameter
-  const stationInfoUrl = `${API_ROUTES.STATIONS.INFO}?city=${currentCity}`;
-  const stationStatusUrl = `${API_ROUTES.STATIONS.STATUS}?city=${currentCity}`;
+  const stationInfoUrl = buildApiRoute(API_ROUTES.STATIONS.INFO, { city: currentCity });
+  const stationStatusUrl = buildApiRoute(API_ROUTES.STATIONS.STATUS, { city: currentCity });
 
   // Fetch static station information (cached for 24 hours)
   const { data: stationInfoData, error: infoError } = useSWR<{
