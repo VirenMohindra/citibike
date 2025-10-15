@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { db } from '@/lib/db';
 import type { Trip } from '@/lib/db/schema';
+import { useI18n } from '@/lib/i18n';
 
 interface ErrorStats {
   errorCode: string;
@@ -11,17 +12,12 @@ interface ErrorStats {
 }
 
 export default function TripErrorDebug({ userId }: { userId: string | null }) {
+  const { t } = useI18n();
   const [errorStats, setErrorStats] = useState<ErrorStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isResetting, setIsResetting] = useState(false);
 
-  useEffect(() => {
-    if (!userId) return;
-
-    void loadErrorStats();
-  }, [userId]);
-
-  async function loadErrorStats() {
+  const loadErrorStats = async () => {
     if (!userId) return;
 
     setIsLoading(true);
@@ -53,7 +49,14 @@ export default function TripErrorDebug({ userId }: { userId: string | null }) {
     } finally {
       setIsLoading(false);
     }
-  }
+  };
+
+  useEffect(() => {
+    if (!userId) return;
+
+    void loadErrorStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   async function resetAllErrors() {
     if (!userId) return;
@@ -126,7 +129,7 @@ export default function TripErrorDebug({ userId }: { userId: string | null }) {
   if (totalErrors === 0) {
     return (
       <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-        <p className="text-green-600 dark:text-green-400">✅ No trips with errors!</p>
+        <p className="text-green-600 dark:text-green-400">{t('tripErrorDebug.noErrors')}</p>
       </div>
     );
   }
@@ -135,14 +138,14 @@ export default function TripErrorDebug({ userId }: { userId: string | null }) {
     <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-          Trip Fetch Errors ({totalErrors} trips)
+          {t('tripErrorDebug.title', { count: totalErrors })}
         </h3>
         <button
           onClick={resetAllErrors}
           disabled={isResetting}
           className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 disabled:opacity-50"
         >
-          {isResetting ? 'Resetting...' : 'Reset All'}
+          {isResetting ? t('tripErrorDebug.resetting') : t('tripErrorDebug.resetAll')}
         </button>
       </div>
 
@@ -158,7 +161,8 @@ export default function TripErrorDebug({ userId }: { userId: string | null }) {
                   {stat.errorCode}
                 </span>
                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                  {stat.count} trip{stat.count !== 1 ? 's' : ''}
+                  {stat.count}{' '}
+                  {stat.count !== 1 ? t('tripErrorDebug.trips') : t('tripErrorDebug.trip')}
                 </span>
               </div>
               <button
@@ -166,20 +170,21 @@ export default function TripErrorDebug({ userId }: { userId: string | null }) {
                 disabled={isResetting}
                 className="px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700 disabled:opacity-50"
               >
-                Reset
+                {t('tripErrorDebug.reset')}
               </button>
             </div>
 
             {/* Show sample trips with high attempt counts */}
             {stat.trips.some((t) => (t.detailsFetchAttempts || 0) > 5) && (
               <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-                <p className="font-semibold">High retry counts:</p>
+                <p className="font-semibold">{t('tripErrorDebug.highRetryCounts')}</p>
                 {stat.trips
                   .filter((t) => (t.detailsFetchAttempts || 0) > 5)
                   .slice(0, 3)
                   .map((trip) => (
                     <div key={trip.id} className="font-mono">
-                      {trip.id.slice(-12)} - {trip.detailsFetchAttempts} attempts
+                      {trip.id.slice(-12)} - {trip.detailsFetchAttempts}{' '}
+                      {t('tripErrorDebug.attempts')}
                     </div>
                   ))}
               </div>
@@ -188,36 +193,22 @@ export default function TripErrorDebug({ userId }: { userId: string | null }) {
             {/* Error explanation */}
             <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
               {stat.errorCode === 'RATE_LIMITED' && (
-                <p>
-                  ⚠️ <strong>Rate Limited:</strong> Too many requests. Wait before retrying.
-                </p>
+                <p dangerouslySetInnerHTML={{ __html: t('tripErrorDebug.errorExplanations.rateLimited') }} />
               )}
               {stat.errorCode === 'NOT_FOUND' && (
-                <p>
-                  🔍 <strong>Not Found:</strong> Trip IDs don&apos;t exist in Lyft&apos;s system
-                  (deleted or invalid).
-                </p>
+                <p dangerouslySetInnerHTML={{ __html: t('tripErrorDebug.errorExplanations.notFound') }} />
               )}
               {stat.errorCode === 'HTTP_404' && (
-                <p>
-                  🔍 <strong>HTTP 404:</strong> Trip IDs don&apos;t exist in Lyft&apos;s system
-                  (deleted or invalid).
-                </p>
+                <p dangerouslySetInnerHTML={{ __html: t('tripErrorDebug.errorExplanations.http404') }} />
               )}
               {stat.errorCode === 'UNAUTHORIZED' && (
-                <p>
-                  🔐 <strong>Unauthorized:</strong> Session expired. Log in again.
-                </p>
+                <p dangerouslySetInnerHTML={{ __html: t('tripErrorDebug.errorExplanations.unauthorized') }} />
               )}
               {stat.errorCode === 'NETWORK_ERROR' && (
-                <p>
-                  🌐 <strong>Network Error:</strong> Connection issue or server unreachable.
-                </p>
+                <p dangerouslySetInnerHTML={{ __html: t('tripErrorDebug.errorExplanations.networkError') }} />
               )}
               {stat.errorCode === 'SERVER_ERROR' && (
-                <p>
-                  🔧 <strong>Server Error:</strong> Lyft API returned 500+ error.
-                </p>
+                <p dangerouslySetInnerHTML={{ __html: t('tripErrorDebug.errorExplanations.serverError') }} />
               )}
             </div>
           </div>
@@ -225,10 +216,8 @@ export default function TripErrorDebug({ userId }: { userId: string | null }) {
       </div>
 
       <div className="text-xs text-gray-500 dark:text-gray-400 pt-3 border-t border-gray-200 dark:border-gray-700">
-        <p className="mb-2">
-          <strong>Tip:</strong> Reset rate-limited trips and wait 1 hour before retrying.
-        </p>
-        <p>Trips with NOT_FOUND or HTTP_404 errors are likely permanently unavailable.</p>
+        <p className="mb-2" dangerouslySetInnerHTML={{ __html: t('tripErrorDebug.tips.rateLimitTip') }} />
+        <p>{t('tripErrorDebug.tips.permanentErrors')}</p>
       </div>
     </div>
   );

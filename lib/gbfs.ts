@@ -1,15 +1,29 @@
 // GBFS Data Fetching Utilities
 import type {
   GBFSResponse,
+  Station,
   StationInformation,
+  StationStatus,
   StationStatusData,
   StationWithStatus,
   SystemInformation,
   SystemRegions,
-  Station,
-  StationStatus,
 } from './types';
 import { buildCityGbfsUrl, DEFAULT_CITY_ID } from '@/config/cities';
+
+// ============================================
+// GBFS Endpoints
+// ============================================
+export const GBFS_ENDPOINTS = {
+  DISCOVERY: '/gbfs.json',
+  SYSTEM_INFO: '/system_information.json',
+  STATION_INFO: '/station_information.json',
+  STATION_STATUS: '/station_status.json',
+  SYSTEM_REGIONS: '/system_regions.json',
+  SYSTEM_ALERTS: '/system_alerts.json',
+  VEHICLE_TYPES: '/vehicle_types.json',
+  PRICING_PLANS: '/system_pricing_plans.json',
+} as const;
 
 /**
  * Fetches station information from the GBFS API
@@ -17,7 +31,7 @@ import { buildCityGbfsUrl, DEFAULT_CITY_ID } from '@/config/cities';
 export async function fetchStationInformation(
   cityId: string = DEFAULT_CITY_ID
 ): Promise<Station[]> {
-  const url = buildCityGbfsUrl(cityId, '/station_information.json');
+  const url = buildCityGbfsUrl(cityId, GBFS_ENDPOINTS.STATION_INFO);
   const response = await fetch(url, {
     next: { revalidate: 60 }, // Revalidate every 60 seconds
   });
@@ -36,7 +50,7 @@ export async function fetchStationInformation(
 export async function fetchStationStatus(
   cityId: string = DEFAULT_CITY_ID
 ): Promise<StationStatus[]> {
-  const url = buildCityGbfsUrl(cityId, '/station_status.json');
+  const url = buildCityGbfsUrl(cityId, GBFS_ENDPOINTS.STATION_STATUS);
   const response = await fetch(url, {
     next: { revalidate: 30 }, // Revalidate every 30 seconds (more frequent for real-time data)
   });
@@ -55,7 +69,7 @@ export async function fetchStationStatus(
 export async function fetchSystemInformation(
   cityId: string = DEFAULT_CITY_ID
 ): Promise<SystemInformation> {
-  const url = buildCityGbfsUrl(cityId, '/system_information.json');
+  const url = buildCityGbfsUrl(cityId, GBFS_ENDPOINTS.SYSTEM_INFO);
   const response = await fetch(url, {
     next: { revalidate: 3600 }, // Revalidate every hour (rarely changes)
   });
@@ -72,7 +86,7 @@ export async function fetchSystemInformation(
  * Fetches system regions from the GBFS API
  */
 export async function fetchSystemRegions(cityId: string = DEFAULT_CITY_ID): Promise<SystemRegions> {
-  const url = buildCityGbfsUrl(cityId, '/system_regions.json');
+  const url = buildCityGbfsUrl(cityId, GBFS_ENDPOINTS.SYSTEM_REGIONS);
   const response = await fetch(url, {
     next: { revalidate: 3600 }, // Revalidate every hour
   });
@@ -105,53 +119,6 @@ export function mergeStationData(
       is_renting: status?.is_renting === 1,
       is_installed: status?.is_installed === 1,
     };
-  });
-}
-
-/**
- * Fetches and merges station information with status
- */
-export async function fetchStationsWithStatus(
-  cityId: string = DEFAULT_CITY_ID
-): Promise<StationWithStatus[]> {
-  try {
-    const [stations, statuses] = await Promise.all([
-      fetchStationInformation(cityId),
-      fetchStationStatus(cityId),
-    ]);
-
-    return mergeStationData(stations, statuses);
-  } catch (error) {
-    console.error('Error fetching station data:', error);
-    throw error;
-  }
-}
-
-/**
- * Filters stations by region
- */
-export function filterStationsByRegion(
-  stations: StationWithStatus[],
-  regionId: string
-): StationWithStatus[] {
-  return stations.filter((station) => station.region_id === regionId);
-}
-
-/**
- * Filters stations by availability
- */
-export function filterAvailableStations(
-  stations: StationWithStatus[],
-  requireBikes: boolean = true
-): StationWithStatus[] {
-  return stations.filter((station) => {
-    if (!station.is_installed || !station.is_renting) return false;
-
-    if (requireBikes) {
-      return (station.num_bikes_available ?? 0) > 0;
-    } else {
-      return (station.num_docks_available ?? 0) > 0;
-    }
   });
 }
 

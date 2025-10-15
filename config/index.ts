@@ -1,31 +1,11 @@
-/**
- * Configuration Module
- * Central export point for all configuration
- */
-
-// Export all constants
-export * from './constants';
-
-// Export all API configuration
-export * from './api';
-
-// Export all routes
-export * from './routes';
-
-// Export environment utilities
-export * from './environment';
-
-// Export city configuration
-export * from './cities';
-
-// ============================================
-// Quick Access Exports
-// ============================================
-
-import { APP_NAME, APP_VERSION, APP_DESCRIPTION } from './constants';
+import { APP_DESCRIPTION, APP_NAME, APP_VERSION } from './constants';
 import { API_CONFIG } from './api';
-import { PAGES, API_ROUTES, EXTERNAL_LINKS } from './routes';
+import { API_ROUTES, EXTERNAL_LINKS, PAGES } from './routes';
 import { getConfig, getFeatureFlags } from './environment';
+
+// ============================================
+// Configuration Utilities
+// ============================================
 
 /**
  * Application metadata
@@ -56,7 +36,9 @@ export function getAppConfig() {
   };
 }
 
-// Default export for convenience
+/**
+ * Default export for convenience
+ */
 const config = {
   APP_META,
   API_CONFIG,

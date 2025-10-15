@@ -6,7 +6,7 @@
 
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { getLyftClient } from '@/lib/api';
+import { getLyftClient } from '@/lib/api/lyft-client';
 import { ApiError } from '@/lib/api/client';
 import {
   getAccessTokenCookieOptions,

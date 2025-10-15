@@ -1,49 +1,16 @@
-/**
- * API Module
- * Central export point for all API utilities
- */
-
-// Export base client
-export { BaseApiClient, ApiError } from './client';
-export type { ApiRequestOptions, ApiErrorResponse } from './client';
-
-// Export Lyft client
-export { LyftApiClient, getLyftClient } from './lyft-client';
-
-// Export session utilities
-export {
-  createSession,
-  createAuthenticatedSession,
-  parseSession,
-  isAuthenticatedSession,
-  createDeviceIdentifiers,
-  encodeIdentifiers,
-  createEmptyIdentifiers,
-  getSessionCookieOptions,
-  getAccessTokenCookieOptions,
-  getRefreshTokenCookieOptions,
-  SESSION_COOKIES,
-  generateSessionId,
-  generateZeroUuid,
-  isValidSessionData,
-  isValidUuid,
-} from './session';
-
-export type { SessionData, SessionInfo, DeviceIdentifier, CookieOptions } from './session';
-
-// Import for internal use
-import { getLyftClient as getLyftClientInternal } from './lyft-client';
+import { getLyftClient } from './lyft-client';
 
 // ============================================
-// Convenience Exports
+// API Utility Functions
 // ============================================
 
 /**
  * Check if authentication is available
+ * @future This could be expanded to check token validity, expiration, etc.
  */
 export function isAuthAvailable(): boolean {
   try {
-    const client = getLyftClientInternal();
+    const client = getLyftClient();
     return client.hasCredentials();
   } catch {
     return false;
@@ -52,6 +19,7 @@ export function isAuthAvailable(): boolean {
 
 /**
  * Create standard API response
+ * @future This could be expanded to include pagination info, request IDs, etc.
  */
 export function createApiResponse<T>(data: T, success: boolean = true, error?: string) {
   return {
@@ -64,6 +32,7 @@ export function createApiResponse<T>(data: T, success: boolean = true, error?: s
 
 /**
  * Create error API response
+ * @future This could be expanded to include error codes, stack traces, etc.
  */
 export function createApiError(
   error: string,

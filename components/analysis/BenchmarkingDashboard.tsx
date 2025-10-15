@@ -12,6 +12,15 @@ import {
   useTimeOfDayPatterns,
 } from '@/lib/db/hooks/usePublicTripStats';
 import type { Trip } from '@/lib/db/schema';
+import { useI18n } from '@/lib/i18n';
+
+// Map snake_case time values to camelCase translation keys
+const TIME_OF_DAY_KEYS = {
+  morning_rush: 'benchmarkingDashboard.timeOfDay.morningRush',
+  midday: 'benchmarkingDashboard.timeOfDay.midday',
+  evening_rush: 'benchmarkingDashboard.timeOfDay.eveningRush',
+  night: 'benchmarkingDashboard.timeOfDay.night',
+} as const;
 
 interface BenchmarkingDashboardProps {
   personalTrips: Trip[];
@@ -19,6 +28,7 @@ interface BenchmarkingDashboardProps {
 }
 
 export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDashboardProps) {
+  const { t } = useI18n();
   const { stats: publicStats, isLoading: publicLoading } = usePublicTripStats();
   const { analysis: bikeTypeAnalysis, isLoading: bikeTypeLoading } = useBikeTypeAnalysis();
   const { patterns: timePatterns, isLoading: timeLoading } = useTimeOfDayPatterns();
@@ -67,7 +77,7 @@ export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDas
   if (publicLoading || bikeTypeLoading || timeLoading) {
     return (
       <div className="p-8 bg-gray-50 dark:bg-gray-800 rounded-lg">
-        <p className="text-gray-600 dark:text-gray-400">Loading benchmarking data...</p>
+        <p className="text-gray-600 dark:text-gray-400">{t('benchmarkingDashboard.loading')}</p>
       </div>
     );
   }
@@ -76,13 +86,13 @@ export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDas
     return (
       <div className="p-8 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
         <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-          No Public Data Available
+          {t('benchmarkingDashboard.noPublicData.title')}
         </h3>
         <p className="text-gray-700 dark:text-gray-300 mb-4">
-          Import public trip data to see how your usage compares to other Citibike users.
+          {t('benchmarkingDashboard.noPublicData.description')}
         </p>
         <a href="/analysis/import" className="text-blue-600 hover:underline dark:text-blue-400">
-          Import Public Data →
+          {t('benchmarkingDashboard.noPublicData.linkText')}
         </a>
       </div>
     );
@@ -91,9 +101,11 @@ export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDas
   if (!personalStats || personalTrips.length === 0) {
     return (
       <div className="p-8 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">No Personal Trips</h3>
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+          {t('benchmarkingDashboard.noPersonalTrips.title')}
+        </h3>
         <p className="text-gray-700 dark:text-gray-300">
-          Log in to Citibike and sync your trip data to see personalized benchmarking insights.
+          {t('benchmarkingDashboard.noPersonalTrips.description')}
         </p>
       </div>
     );
@@ -109,10 +121,14 @@ export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDas
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Usage Benchmarking</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          {t('benchmarkingDashboard.header.title')}
+        </h2>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Comparing your {personalStats.totalTrips.toLocaleString()} trips to{' '}
-          {publicStats.totalTrips.toLocaleString()} aggregate public trips
+          {t('benchmarkingDashboard.header.subtitle', {
+            personalTrips: personalStats.totalTrips.toLocaleString(),
+            publicTrips: publicStats.totalTrips.toLocaleString(),
+          })}
         </p>
       </div>
 
@@ -120,9 +136,11 @@ export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDas
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* E-bike Usage */}
         <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">E-bike Usage</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+            {t('benchmarkingDashboard.stats.ebikeUsage.label')}
+          </div>
           <div className="text-2xl font-bold text-gray-900 dark:text-white">
-            {personalStats.ebikePercent.toFixed(1)}%
+            {personalStats.ebikePercent.toFixed(1)}{t('benchmarkingDashboard.units.percent')}
           </div>
           <div
             className={`text-sm mt-1 ${
@@ -132,16 +150,20 @@ export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDas
             }`}
           >
             {ebikeComparison > 0 ? '+' : ''}
-            {ebikeComparison.toFixed(1)}% vs average (
-            {publicStats.bikeTypes!.ebikePercent.toFixed(1)}%)
+            {ebikeComparison.toFixed(1)}{t('benchmarkingDashboard.units.percent')}{' '}
+            {t('benchmarkingDashboard.comparison.vsAverage')} (
+            {publicStats.bikeTypes!.ebikePercent.toFixed(1)}
+            {t('benchmarkingDashboard.units.percent')})
           </div>
         </div>
 
         {/* Average Duration */}
         <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Avg Trip Duration</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+            {t('benchmarkingDashboard.stats.avgDuration.label')}
+          </div>
           <div className="text-2xl font-bold text-gray-900 dark:text-white">
-            {personalStats.avgDurationMinutes.toFixed(1)} min
+            {personalStats.avgDurationMinutes.toFixed(1)} {t('benchmarkingDashboard.units.minutes')}
           </div>
           <div
             className={`text-sm mt-1 ${
@@ -153,16 +175,19 @@ export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDas
             }`}
           >
             {durationComparison > 0 ? '+' : ''}
-            {durationComparison.toFixed(1)} min vs average (
-            {publicStats.averages!.durationMinutes.toFixed(1)} min)
+            {durationComparison.toFixed(1)} {t('benchmarkingDashboard.units.minutes')}{' '}
+            {t('benchmarkingDashboard.comparison.vsAverage')} (
+            {publicStats.averages!.durationMinutes.toFixed(1)} {t('benchmarkingDashboard.units.minutes')})
           </div>
         </div>
 
         {/* Average Distance */}
         <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Avg Trip Distance</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+            {t('benchmarkingDashboard.stats.avgDistance.label')}
+          </div>
           <div className="text-2xl font-bold text-gray-900 dark:text-white">
-            {personalStats.avgDistanceMiles.toFixed(2)} mi
+            {personalStats.avgDistanceMiles.toFixed(2)} {t('benchmarkingDashboard.units.miles')}
           </div>
           <div
             className={`text-sm mt-1 ${
@@ -174,8 +199,9 @@ export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDas
             }`}
           >
             {distanceComparison > 0 ? '+' : ''}
-            {distanceComparison.toFixed(2)} mi vs average (
-            {publicStats.averages!.distanceMiles.toFixed(2)} mi)
+            {distanceComparison.toFixed(2)} {t('benchmarkingDashboard.units.miles')}{' '}
+            {t('benchmarkingDashboard.comparison.vsAverage')} (
+            {publicStats.averages!.distanceMiles.toFixed(2)} {t('benchmarkingDashboard.units.miles')})
           </div>
         </div>
       </div>
@@ -183,7 +209,9 @@ export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDas
       {/* Time of Day Comparison */}
       {timePatterns && timePatterns.length > 0 && (
         <div className="p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Riding Patterns</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
+            {t('benchmarkingDashboard.ridingPatterns.title')}
+          </h3>
           <div className="space-y-3">
             {timePatterns.map((pattern) => {
               const personalCount =
@@ -193,12 +221,9 @@ export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDas
               const personalPercent = (personalCount / personalStats.totalTrips) * 100;
               const difference = personalPercent - pattern.percent;
 
-              const timeLabel = {
-                morning_rush: 'Morning Rush (7-10am)',
-                midday: 'Midday (10am-4pm)',
-                evening_rush: 'Evening Rush (4-8pm)',
-                night: 'Night (8pm-7am)',
-              }[pattern.timeOfDay];
+              const timeLabel = t(
+                TIME_OF_DAY_KEYS[pattern.timeOfDay as keyof typeof TIME_OF_DAY_KEYS]
+              );
 
               return (
                 <div key={pattern.timeOfDay}>
@@ -207,7 +232,10 @@ export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDas
                       {timeLabel}
                     </span>
                     <span className="text-sm text-gray-600 dark:text-gray-400">
-                      You: {personalPercent.toFixed(1)}% | Average: {pattern.percent.toFixed(1)}%
+                      {t('benchmarkingDashboard.ridingPatterns.you')} {personalPercent.toFixed(1)}
+                      {t('benchmarkingDashboard.units.percent')} |{' '}
+                      {t('benchmarkingDashboard.ridingPatterns.average')} {pattern.percent.toFixed(1)}
+                      {t('benchmarkingDashboard.units.percent')}
                     </span>
                   </div>
                   <div className="flex gap-2">
@@ -229,8 +257,12 @@ export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDas
                   {Math.abs(difference) > 5 && (
                     <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       {difference > 0
-                        ? `You ride ${difference.toFixed(1)}% more during this time`
-                        : `You ride ${Math.abs(difference).toFixed(1)}% less during this time`}
+                        ? t('benchmarkingDashboard.ridingPatterns.moreUsage', {
+                            difference: difference.toFixed(1),
+                          })
+                        : t('benchmarkingDashboard.ridingPatterns.lessUsage', {
+                            difference: Math.abs(difference).toFixed(1),
+                          })}
                     </div>
                   )}
                 </div>
@@ -244,31 +276,40 @@ export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDas
       {bikeTypeAnalysis && (
         <div className="p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
-            E-bike vs Classic Comparison
+            {t('benchmarkingDashboard.bikeTypeComparison.title')}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* E-bike stats */}
             <div>
               <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                E-bike Trips (Average User)
+                {t('benchmarkingDashboard.bikeTypeComparison.ebike.title')}
               </h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Avg Duration</span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    {t('benchmarkingDashboard.bikeTypeComparison.avgDuration')}
+                  </span>
                   <span className="font-medium text-gray-900 dark:text-white">
-                    {bikeTypeAnalysis.ebike.avgDuration.toFixed(1)} min
+                    {bikeTypeAnalysis.ebike.avgDuration.toFixed(1)}{' '}
+                    {t('benchmarkingDashboard.units.minutes')}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Avg Distance</span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    {t('benchmarkingDashboard.bikeTypeComparison.avgDistance')}
+                  </span>
                   <span className="font-medium text-gray-900 dark:text-white">
-                    {bikeTypeAnalysis.ebike.avgDistance.toFixed(2)} mi
+                    {bikeTypeAnalysis.ebike.avgDistance.toFixed(2)}{' '}
+                    {t('benchmarkingDashboard.units.miles')}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Member Usage</span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    {t('benchmarkingDashboard.bikeTypeComparison.memberUsage')}
+                  </span>
                   <span className="font-medium text-gray-900 dark:text-white">
-                    {bikeTypeAnalysis.ebike.memberPercent.toFixed(1)}%
+                    {bikeTypeAnalysis.ebike.memberPercent.toFixed(1)}
+                    {t('benchmarkingDashboard.units.percent')}
                   </span>
                 </div>
               </div>
@@ -277,25 +318,34 @@ export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDas
             {/* Classic stats */}
             <div>
               <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                Classic Trips (Average User)
+                {t('benchmarkingDashboard.bikeTypeComparison.classic.title')}
               </h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Avg Duration</span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    {t('benchmarkingDashboard.bikeTypeComparison.avgDuration')}
+                  </span>
                   <span className="font-medium text-gray-900 dark:text-white">
-                    {bikeTypeAnalysis.classic.avgDuration.toFixed(1)} min
+                    {bikeTypeAnalysis.classic.avgDuration.toFixed(1)}{' '}
+                    {t('benchmarkingDashboard.units.minutes')}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Avg Distance</span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    {t('benchmarkingDashboard.bikeTypeComparison.avgDistance')}
+                  </span>
                   <span className="font-medium text-gray-900 dark:text-white">
-                    {bikeTypeAnalysis.classic.avgDistance.toFixed(2)} mi
+                    {bikeTypeAnalysis.classic.avgDistance.toFixed(2)}{' '}
+                    {t('benchmarkingDashboard.units.miles')}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Member Usage</span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    {t('benchmarkingDashboard.bikeTypeComparison.memberUsage')}
+                  </span>
                   <span className="font-medium text-gray-900 dark:text-white">
-                    {bikeTypeAnalysis.classic.memberPercent.toFixed(1)}%
+                    {bikeTypeAnalysis.classic.memberPercent.toFixed(1)}
+                    {t('benchmarkingDashboard.units.percent')}
                   </span>
                 </div>
               </div>
@@ -304,13 +354,13 @@ export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDas
 
           {/* Insight */}
           <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded text-sm text-gray-700 dark:text-gray-300">
-            💡 E-bike trips are typically{' '}
-            {(
-              ((bikeTypeAnalysis.ebike.avgDistance - bikeTypeAnalysis.classic.avgDistance) /
-                bikeTypeAnalysis.classic.avgDistance) *
-              100
-            ).toFixed(0)}
-            % longer in distance on average
+            {t('benchmarkingDashboard.insights.ebikeDistance', {
+              percentage: (
+                ((bikeTypeAnalysis.ebike.avgDistance - bikeTypeAnalysis.classic.avgDistance) /
+                  bikeTypeAnalysis.classic.avgDistance) *
+                100
+              ).toFixed(0),
+            })}
           </div>
         </div>
       )}
