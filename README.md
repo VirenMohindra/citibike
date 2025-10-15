@@ -115,13 +115,13 @@ For each trip, calculates:
 
 ## Screenshots
 
-| Route Planning                             | Economics Analysis                             | Trip History                                    |
-| ------------------------------------------ | ---------------------------------------------- | ----------------------------------------------- |
-| ![Map](./public/demo/map-markers.png)      | ![Economics](./public/demo/economics.png)      | ![Trips](./public/demo/previous-trips.png)      |
+| Route Planning                        | Economics Analysis                        | Trip History                               |
+| ------------------------------------- | ----------------------------------------- | ------------------------------------------ |
+| ![Map](./public/demo/map-markers.png) | ![Economics](./public/demo/economics.png) | ![Trips](./public/demo/previous-trips.png) |
 
-| Turn-by-Turn Navigation                    | Heat Map                                 | Trip Statistics                             |
-| ------------------------------------------ | ---------------------------------------- | ------------------------------------------- |
-| ![Navigation](./public/demo/navigation.png) | ![Heat Map](./public/demo/heat-map.png) | ![Stats](./public/demo/trip-stats.png)      |
+| Turn-by-Turn Navigation                     | Heat Map                                | Trip Statistics                        |
+| ------------------------------------------- | --------------------------------------- | -------------------------------------- |
+| ![Navigation](./public/demo/navigation.png) | ![Heat Map](./public/demo/heat-map.png) | ![Stats](./public/demo/trip-stats.png) |
 
 ## Quick Start
 

@@ -16,34 +16,6 @@ if (MAPBOX_TOKEN) {
 }
 
 // ============================================
-// Geographic Bounds
-// ============================================
-
-/**
- * NYC bounds (includes all 5 boroughs)
- * Optimized for CitiBike service area which spans Manhattan, Brooklyn, Queens, Bronx, and Jersey City
- */
-export const NYC_BOUNDS: [number, number, number, number] = [
-  -74.05, // West (includes Jersey City)
-  40.68, // South (includes South Brooklyn)
-  -73.9, // East (includes Western Queens)
-  40.88, // North (includes Upper Manhattan/Bronx)
-];
-
-/**
- * NYC bounds as LngLatBoundsLike for Mapbox GL
- */
-export const NYC_BOUNDS_LNGLAT: mapboxgl.LngLatBoundsLike = [
-  [NYC_BOUNDS[0], NYC_BOUNDS[1]], // Southwest
-  [NYC_BOUNDS[2], NYC_BOUNDS[3]], // Northeast
-];
-
-/**
- * NYC center coordinates [lng, lat]
- */
-export const NYC_CENTER: [number, number] = [-73.98, 40.75];
-
-// ============================================
 // Zoom Levels
 // ============================================
 
@@ -58,11 +30,6 @@ export const MIN_ZOOM = 11;
  * Above this, too much detail for bike navigation
  */
 export const MAX_ZOOM = 18;
-
-/**
- * Default initial zoom for main map
- */
-export const DEFAULT_ZOOM = 12;
 
 /**
  * Default zoom when viewing trip details
@@ -132,20 +99,6 @@ export const FLY_TO_OPTIONS = {
 };
 
 // ============================================
-// Clustering Configuration
-// ============================================
-
-/**
- * Supercluster configuration for station markers
- */
-export const CLUSTER_OPTIONS = {
-  radius: 60, // Cluster radius in pixels
-  maxZoom: 16, // Max zoom to cluster points on
-  minZoom: 0,
-  minPoints: 3, // Minimum points to form a cluster
-};
-
-// ============================================
 // Routing Configuration
 // ============================================
 
@@ -183,32 +136,3 @@ export function getDirectionsUrl(
 
   return `${DIRECTIONS_API_BASE}/${profile}/${coordinates}?${params.toString()}`;
 }
-
-// ============================================
-// Cache Configuration
-// ============================================
-
-/**
- * Cache keys for service worker
- */
-export const MAPBOX_CACHE_KEYS = {
-  TILES: 'mapbox-tiles-v1',
-  STYLES: 'mapbox-styles-v1',
-  SPRITES: 'mapbox-sprites-v1',
-  GLYPHS: 'mapbox-glyphs-v1',
-};
-
-/**
- * Tile cache expiration (30 days in seconds)
- * Vector tiles rarely change for base maps
- */
-export const TILE_CACHE_EXPIRATION = 30 * 24 * 60 * 60;
-
-/**
- * Tile URL patterns for caching
- */
-export const MAPBOX_TILE_PATTERNS = [
-  /^https:\/\/api\.mapbox\.com\/v4\/.*/,
-  /^https:\/\/api\.mapbox\.com\/styles\/v1\/.*/,
-  /^https:\/\/api\.mapbox\.com\/fonts\/v1\/.*/,
-];

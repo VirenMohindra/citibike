@@ -46,7 +46,7 @@ export default function TripReplayControls({
   };
 
   return (
-    <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 p-4 min-w-[400px]">
+    <div className="absolute bottom-24 lg:bottom-8 left-1/2 transform -translate-x-1/2 z-10 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 p-3 lg:p-4 w-[calc(100%-2rem)] max-w-[400px]">
       {/* Progress Bar */}
       <div className="mb-3">
         <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
@@ -65,7 +65,7 @@ export default function TripReplayControls({
       </div>
 
       {/* Controls */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
         {/* Play/Pause and Reset */}
         <div className="flex items-center gap-2">
           <button

@@ -56,6 +56,7 @@ export const LYFT_ENDPOINTS = {
   // Last Mile (Bike Angel, etc.)
   LAST_MILE: {
     BIKE_ANGEL_PROFILE: '/v1/lbsbff/screens/bike-angel-profile',
+    MAP_ITEMS: '/v1/last-mile/map-items',
   },
 };
 

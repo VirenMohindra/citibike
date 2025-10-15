@@ -218,6 +218,44 @@ export class LyftApiClient extends BaseApiClient {
   // ============================================
 
   /**
+   * Get stations with Bike Angel rewards (map-items endpoint)
+   */
+  async getStationsWithRewards(
+    accessToken: string,
+    location: { lat: number; lon: number },
+    radiusKm: number = 1
+  ): Promise<Record<string, unknown>> {
+    const headers = createLyftHeaders({
+      token: accessToken,
+      clientSessionId: this.sessionInfo.clientSessionId,
+      xSession: this.sessionInfo.xSession,
+      isJson: true,
+      idlSource: 'pb.api.endpoints.v1.last_mile.ReadMapItemsRequest',
+    });
+
+    // Add location and region headers
+    headers['x-location'] = `${location.lat},${location.lon}`;
+    headers['x-lyft-region'] = ''; // Empty region for map-items
+
+    const requestBody = {
+      last_mile_context: {
+        origin_lat: location.lat,
+        origin_long: location.lon,
+        radius_km: radiusKm,
+        result_filters: ['is_bike', 'show_rider_rewards', 'bff_fidget_enabled'],
+      },
+    };
+
+    const response = await this.post<Record<string, unknown>>(
+      LYFT_ENDPOINTS.LAST_MILE.MAP_ITEMS,
+      requestBody,
+      { headers }
+    );
+
+    return response;
+  }
+
+  /**
    * Get Bike Angel profile and points
    */
   async getBikeAngelProfile(

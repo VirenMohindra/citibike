@@ -5,6 +5,7 @@ import { useI18n } from '@/lib/i18n';
 import { PAGES } from '@/config/routes';
 import ThemeToggle from './ThemeToggle';
 import UnitToggle from './UnitToggle';
+import BikeAngelToggle from './BikeAngelToggle';
 import CitibikeLogin from './CitibikeLogin';
 import { CitySelector } from './CitySelector';
 import { ReactNode } from 'react';
@@ -59,6 +60,7 @@ export default function NavBar({ children }: NavBarProps) {
             </svg>
           </a>
           <UnitToggle />
+          <BikeAngelToggle />
           <ThemeToggle />
           <CitibikeLogin compact />
         </div>

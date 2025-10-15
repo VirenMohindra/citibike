@@ -320,6 +320,118 @@ The response is returned as **JSON** when `accept: application/json` header is u
 - Frontend component: `components/TripStats.tsx` (with progressive sync)
 - Database: `lib/db.ts` (IndexedDB storage with deduplication)
 
+### Get Stations with Bike Angel Rewards (Map Items)
+
+**Endpoint**: `POST /v1/last-mile/map-items`
+
+**Headers**:
+
+```
+Authorization: Bearer {user_access_token}
+x-idl-source: pb.api.endpoints.v1.last_mile.ReadMapItemsRequest
+Content-Type: application/json
+accept: application/json
+x-location: {lat},{lon}
+x-lyft-region: (empty string)
+```
+
+**Body**:
+
+```json
+{
+  "last_mile_context": {
+    "origin_lat": 40.7407,
+    "origin_long": -73.9818,
+    "radius_km": 2.0,
+    "result_filters": ["is_bike", "show_rider_rewards", "bff_fidget_enabled"]
+  }
+}
+```
+
+**Parameters**:
+
+- `origin_lat`: Latitude of map center
+- `origin_long`: Longitude of map center
+- `radius_km`: Search radius in kilometers (typically 0.5 - 5.0)
+- `result_filters`: Array of filters:
+  - `is_bike`: Only show bike stations
+  - `show_rider_rewards`: **KEY FILTER** - enables Bike Angel reward data in response
+  - `bff_fidget_enabled`: Enables additional UI features
+
+**Response Structure**:
+
+```javascript
+{
+  map_items: [
+    {
+      device: {
+        id: "motivate_BKN_abc-123-def",  // Station ID with prefix
+        type: 0
+      },
+      location: {
+        lat: 40.7407,
+        lng: -73.9818
+      },
+      collapsible_collection_bubble: {
+        selected_detailed_text_specific_pin: {
+          // Station availability (bikes and docks)
+          text_specific_items: [
+            {
+              icon: { core_icon_v1: 338 },  // Bike icon
+              text: "5"                      // Number of bikes available
+            },
+            {
+              icon: { core_icon_v1: 156 },  // Dock icon
+              text: "10"                     // Number of docks available
+            }
+          ],
+          // Bike Angel reward badge (only if station has rewards)
+          reward_badge: {
+            points: "4",                     // Point value as string!
+            icon: {
+              core_icon_v1: 114 // or 99    // 114 = pickup (⬆️), 99 = dropoff (⬇️)
+            },
+            icon_rotation: -45,              // Visual rotation (always -45)
+            color: 0xFFFFAA00,              // Badge color
+            style: 0
+          }
+        }
+      }
+    }
+  ],
+  notices: [],
+  request_errors: []
+}
+```
+
+**Data Extraction**:
+
+- **Station ID**: Extract from `device.id` by removing `motivate_BKN_` prefix
+  - Example: `"motivate_BKN_abc-123"` → `"abc-123"`
+- **Point Value**: Parse `reward_badge.points` as integer
+- **Direction**: Determined by `reward_badge.icon.core_icon_v1`:
+  - **Icon 114**: Pickup reward (⬆️) - points earned for taking a bike FROM this station
+  - **Icon 99**: Dropoff reward (⬇️) - points earned for returning a bike TO this station
+  - Same station may appear twice in `map_items` with different icons for different directions
+- **Bikes Available**: First item in `text_specific_items` array (icon 338)
+- **Docks Available**: Second item in `text_specific_items` array (icon 156)
+- **Has Rewards**: Check if `reward_badge` exists and has `points` field
+
+**Important Notes**:
+
+1. **Point values are strings** - must parse to integer
+2. **Empty region** - Use empty string for `x-lyft-region` (not "BKN")
+3. **Only rewarded stations** - Filter for items with `reward_badge` present
+4. **Updates frequency** - Bike Angel rewards update every 15 minutes (on :00, :15, :30, :45)
+5. **Authentication required** - Returns 401 if user not logged in
+
+**Implementation**:
+
+- API client: `lib/api/lyft-client.ts:223` (getStationsWithRewards method)
+- API route: `app/api/citibike/bike-angel/stations/route.ts`
+- Hook: `lib/hooks/useBikeAngelRewards.ts` (auto-refresh every 60s)
+- Map integration: `components/map/Map.tsx` (displays reward badges on markers)
+
 ## Standard Headers
 
 All requests include these standard headers:
@@ -422,6 +534,8 @@ CITIBIKE_CLIENT_SECRET=your_client_secret_here
 - [x] IndexedDB storage with automatic deduplication
 - [x] Trip statistics calculation (distance, duration, CO2, cost)
 - [x] Bike Angel points tracking in trip data
+- [x] Get stations with Bike Angel rewards (map-items endpoint)
+- [x] Real-time reward badge display on map markers
 
 ### 🗑️ Removed (Code Cleanup 2025-10-13)
 
@@ -452,6 +566,8 @@ CITIBIKE_CLIENT_SECRET=your_client_secret_here
 - [ ] Get active trips endpoint
 - [ ] Logout/revoke token endpoint
 - [ ] Error handling for expired tokens
-- [ ] Bike Angel rewards screen parsing and display
+- [ ] Bike Angel rewards screen parsing (profile endpoint)
+- [ ] Route optimization to maximize Bike Angel points
+- [x] Differentiate pickup vs dropoff rewards (implemented via icon.core_icon_v1: 114=pickup, 99=dropoff)
 - [ ] Station-based trip filtering (if needed in future)
 - [ ] Export trip data (CSV/JSON download)

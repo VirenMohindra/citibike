@@ -97,7 +97,15 @@ export function useUrlState(stations: StationWithStatus[]) {
     }
 
     hasLoadedFromUrl.current = true;
-  }, [stations, searchParams, setStartStation, setEndStation, setSelectedStation, currentCity, setCurrentCity]);
+  }, [
+    stations,
+    searchParams,
+    setStartStation,
+    setEndStation,
+    setSelectedStation,
+    currentCity,
+    setCurrentCity,
+  ]);
 
   // Effect to update URL when state changes
   useEffect(() => {

@@ -1,22 +1,29 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import Supercluster from 'supercluster';
 import type { StationWithStatus } from '@/lib/types';
 import { useAppStore } from '@/lib/store';
 import { useI18n } from '@/lib/i18n';
 import { useTheme } from '@/lib/theme-context';
+import { useBikeAngelRewards } from '@/lib/hooks/useBikeAngelRewards';
 import { useCity } from '@/lib/hooks/useCity';
 import {
-  CLUSTER_OPTIONS,
   COMMON_MAP_OPTIONS,
   FIT_BOUNDS_OPTIONS,
   FLY_TO_OPTIONS,
   getDirectionsUrl,
   getMapboxStyle,
 } from '@/config/mapbox';
+import {
+  getMarkerType,
+  type MarkerType,
+  renderUnifiedMarker,
+  updateMarkerType,
+} from './marker-renderers';
+import { getRadiusForZoom } from '@/lib/utils/distance';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import './map-markers.css';
 
 interface MapProps {
   stations?: StationWithStatus[];
@@ -29,20 +36,19 @@ interface MarkerData {
   station?: StationWithStatus;
   clusterId?: number;
   pointCount?: number;
+  markerType?: MarkerType; // Track which renderer was used
 }
 
-type ClusterPoint = {
+type ViewportStation = {
   type: 'Feature';
   properties: {
-    cluster: boolean;
-    station?: StationWithStatus;
-    point_count?: number;
+    cluster: false;
+    station: StationWithStatus;
   };
   geometry: {
     type: 'Point';
     coordinates: [number, number];
   };
-  id?: number;
 };
 
 export default function MapComponent(props: MapProps = { stations: [], routeProfile: 'fastest' }) {
@@ -55,7 +61,7 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<Map<string, MarkerData>>(new Map());
   const sharedPopup = useRef<mapboxgl.Popup | null>(null);
-  const supercluster = useRef<Supercluster | null>(null);
+  const stationsRef = useRef<StationWithStatus[]>(stations); // Stage 5: Ref for event delegation
   const [mapLoaded, setMapLoaded] = useState(false);
   const [zoom, setZoom] = useState(cityConfig.defaultZoom);
   const [bounds, setBounds] = useState<mapboxgl.LngLatBounds | null>(null);
@@ -72,46 +78,50 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
     hoveredStation,
     setHoveredStation,
     setRoute,
+    setMapBounds,
+    setMapCenter: setMapCenterStore,
+    setMapZoom: setMapZoomStore,
+    citibikeUser,
+    showBikeAngelRewards,
+    showVisibleOnly,
   } = useAppStore();
 
-  // Initialize supercluster with station data
+  // Fetch Bike Angel rewards (only if user is authenticated AND feature is enabled)
+  const { rewards: bikeAngelRewards } = useBikeAngelRewards({
+    lat: mapCenter.lat,
+    lon: mapCenter.lon,
+    radius: 2.0,
+    enabled: !!citibikeUser && showBikeAngelRewards,
+  });
+
+  // Keep stationsRef up to date for event delegation (Stage 5 optimization)
   useEffect(() => {
-    if (stations.length === 0) return;
-
-    const cluster = new Supercluster(CLUSTER_OPTIONS);
-
-    // Convert stations to GeoJSON points
-    const points: ClusterPoint[] = stations
-      .filter((s) => s.is_installed)
-      .map((station) => ({
-        type: 'Feature' as const,
-        properties: {
-          cluster: false,
-          station,
-        },
-        geometry: {
-          type: 'Point' as const,
-          coordinates: [station.lon, station.lat] as [number, number],
-        },
-      }));
-
-    cluster.load(points);
-    supercluster.current = cluster;
-
-    console.log(`🗺️ Supercluster initialized with ${points.length} stations`);
+    stationsRef.current = stations;
   }, [stations]);
 
-  // Helper function to calculate marker color
-  const getMarkerColor = useCallback(
-    (station: StationWithStatus, isStart: boolean, isEnd: boolean, isWaypoint: boolean) => {
-      if (isStart) return '#3B82F6'; // blue-500
-      if (isEnd) return '#EF4444'; // red-500
-      if (isWaypoint) return '#8B5CF6'; // purple-500
+  // DEBUG: Helper function to create a circle polygon (for visualizing the radius)
+  const createCirclePolygon = useCallback(
+    (center: { lat: number; lon: number }, radiusMeters: number, points = 64) => {
+      const coords: [number, number][] = [];
+      const distancePerDegree = 111.32; // km per degree at equator
+      const radiusKm = radiusMeters / 1000; // Convert meters to km for calculation
 
-      const bikesAvailable = station.num_bikes_available ?? 0;
-      if (bikesAvailable > 5) return '#10B981'; // green-500
-      if (bikesAvailable > 0) return '#F59E0B'; // amber-500
-      return '#9CA3AF'; // gray-400
+      for (let i = 0; i < points; i++) {
+        const angle = (i / points) * 2 * Math.PI;
+        const dx = radiusKm * Math.cos(angle);
+        const dy = radiusKm * Math.sin(angle);
+
+        // Approximate lat/lon offset (works well for small distances)
+        const lat = center.lat + dy / distancePerDegree;
+        const lon = center.lon + dx / (distancePerDegree * Math.cos((center.lat * Math.PI) / 180));
+
+        coords.push([lon, lat]);
+      }
+
+      // Close the polygon
+      coords.push(coords[0]);
+
+      return coords;
     },
     []
   );
@@ -121,42 +131,121 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
     (station: StationWithStatus) => {
       const regularBikes = (station.num_bikes_available ?? 0) - (station.num_ebikes_available ?? 0);
       const isDark = resolvedTheme === 'dark';
+      const reward = showBikeAngelRewards ? bikeAngelRewards.get(station.station_id) : undefined;
+      const hasBikeAngel = reward && reward.points > 0;
+
+      // Determine BA color based on points
+      const baColor = '#000'; // black text
+      let baBgColor = '#FEF3C7'; // Light amber
+      if (reward && reward.points >= 5) {
+        baBgColor = '#D1FAE5'; // Light green
+      } else if (reward && reward.points >= 3) {
+        baBgColor = '#FFEDD5'; // Light orange
+      }
+
       return `
-      <div class="p-2 ${isDark ? 'bg-gray-800' : 'bg-white'}">
-        <h3 class="font-semibold text-sm mb-1 ${isDark ? 'text-gray-100' : 'text-gray-900'}">${station.name}</h3>
-        <div class="text-xs space-y-0.5">
-          <div class="flex justify-between">
-            <span class="${isDark ? 'text-gray-300' : 'text-gray-700'}">${t('map.station.regularBikes')}:</span>
-            <span class="font-medium ${isDark ? 'text-gray-100' : 'text-gray-900'}">${regularBikes}</span>
+      <div class="p-2.5 ${isDark ? 'bg-gray-800' : 'bg-white'}">
+        <h3 class="font-semibold text-sm mb-2 ${isDark ? 'text-gray-100' : 'text-gray-900'}">${station.name}</h3>
+        ${
+          hasBikeAngel
+            ? `
+        <div class="mb-2 px-2 py-1.5 rounded" style="background-color: ${baBgColor}; border-left: 3px solid ${baColor}">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold" style="color: ${baColor}">Bike Angel Rewards</span>
           </div>
-          <div class="flex justify-between">
-            <span class="${isDark ? 'text-gray-300' : 'text-gray-700'}">${t('map.station.eBikes')}:</span>
-            <span class="font-medium ${isDark ? 'text-gray-100' : 'text-gray-900'}">${station.num_ebikes_available ?? 0}</span>
+          ${
+            reward.pickupPoints || reward.dropoffPoints
+              ? `
+          <div class="flex gap-3 mt-1 text-[11px]" style="color: ${baColor};">
+            ${reward.pickupPoints ? `<span>⬆ ${reward.pickupPoints} pts pickup</span>` : ''}
+            ${reward.dropoffPoints ? `<span>⬇ ${reward.dropoffPoints} pts dropoff</span>` : ''}
           </div>
-          <div class="flex justify-between">
-            <span class="${isDark ? 'text-gray-300' : 'text-gray-700'}">${t('map.station.docksAvailable')}:</span>
-            <span class="font-medium ${isDark ? 'text-gray-100' : 'text-gray-900'}">${station.num_docks_available ?? 0}</span>
+          `
+              : ''
+          }
+        </div>
+        `
+            : ''
+        }
+
+        <div class="text-xs space-y-1">
+          <div class="flex justify-between items-center">
+            <span class="${isDark ? 'text-gray-400' : 'text-gray-600'}">${t('map.station.regularBikes')}</span>
+            <span class="font-semibold ${isDark ? 'text-gray-100' : 'text-gray-900'}">${regularBikes}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="${isDark ? 'text-gray-400' : 'text-gray-600'}">${t('map.station.eBikes')}</span>
+            <span class="font-semibold ${isDark ? 'text-gray-100' : 'text-gray-900'}">${station.num_ebikes_available ?? 0}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="${isDark ? 'text-gray-400' : 'text-gray-600'}">${t('map.station.docksAvailable')}</span>
+            <span class="font-semibold ${isDark ? 'text-gray-100' : 'text-gray-900'}">${station.num_docks_available ?? 0}</span>
           </div>
         </div>
       </div>
     `;
     },
-    [t, resolvedTheme]
+    [t, resolvedTheme, showBikeAngelRewards, bikeAngelRewards]
   );
 
-  // Get clusters and points for current viewport
-  const clustersAndPoints = useMemo(() => {
-    if (!supercluster.current || !bounds) return [];
+  // PERFORMANCE: Memoize GeoJSON features for GPU layers (Stage 4 optimization)
+  const geoJsonFeatures = useMemo(() => {
+    if (stations.length === 0) return [];
 
-    const bbox: [number, number, number, number] = [
-      bounds.getWest(),
-      bounds.getSouth(),
-      bounds.getEast(),
-      bounds.getNorth(),
-    ];
+    return stations
+      .filter((s) => s.is_installed)
+      .map((station) => {
+        const reward = bikeAngelRewards.get(station.station_id);
 
-    return supercluster.current.getClusters(bbox, Math.floor(zoom));
-  }, [bounds, zoom]);
+        return {
+          type: 'Feature' as const,
+          id: station.station_id,
+          properties: {
+            station_id: station.station_id,
+            name: station.name,
+            num_bikes_available: station.num_bikes_available ?? 0,
+            num_ebikes_available: station.num_ebikes_available ?? 0,
+            num_docks_available: station.num_docks_available ?? 0,
+            // BikeAngel reward data
+            ba_points: reward?.points ?? 0,
+            ba_pickup_points: reward?.pickupPoints ?? 0,
+            ba_dropoff_points: reward?.dropoffPoints ?? 0,
+          },
+          geometry: {
+            type: 'Point' as const,
+            coordinates: [station.lon, station.lat] as [number, number],
+          },
+        };
+      });
+  }, [stations, bikeAngelRewards]);
+
+  // Get visible stations in current viewport (for DOM marker rendering)
+  const visibleStations = useMemo((): ViewportStation[] => {
+    if (!bounds || stations.length === 0) return [];
+
+    // Filter stations within viewport bounds
+    return stations
+      .filter((s) => s.is_installed)
+      .filter((s) => {
+        return (
+          s.lon >= bounds.getWest() &&
+          s.lon <= bounds.getEast() &&
+          s.lat >= bounds.getSouth() &&
+          s.lat <= bounds.getNorth()
+        );
+      })
+      .map((station) => ({
+        type: 'Feature' as const,
+        properties: {
+          cluster: false as const,
+          station,
+        },
+        geometry: {
+          type: 'Point' as const,
+          coordinates: [station.lon, station.lat] as [number, number],
+        },
+      }));
+  }, [bounds, stations]);
 
   // Initialize map
   useEffect(() => {
@@ -222,22 +311,183 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
             'line-opacity': 0.75,
           },
         });
+
+        // DEBUG: Add source and layer for 2km radius circle
+        map.current.addSource('debug-circle', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'Polygon',
+              coordinates: [[]],
+            },
+          },
+        });
+
+        map.current.addLayer({
+          id: 'debug-circle-fill',
+          type: 'fill',
+          source: 'debug-circle',
+          paint: {
+            'fill-color': '#9333EA', // Purple
+            'fill-opacity': 0.1,
+          },
+        });
+
+        map.current.addLayer({
+          id: 'debug-circle-outline',
+          type: 'line',
+          source: 'debug-circle',
+          paint: {
+            'line-color': '#9333EA', // Purple
+            'line-width': 2,
+            'line-opacity': 0.5,
+          },
+        });
+
+        // Add stations GeoJSON source WITHOUT clustering (user preference)
+        map.current.addSource('stations', {
+          type: 'geojson',
+          data: {
+            type: 'FeatureCollection',
+            features: [],
+          },
+          cluster: false, // No clustering - show all individual stations
+          maxzoom: 16, // Optimize tile generation (don't generate tiles above zoom 16)
+        });
+
+        // Simple dots (zoom 11-15, all stations)
+        // Clear hierarchy: Yellow = BA points, Green = E-bikes, Amber = Classic bikes, Gray = Unavailable
+        // Overlaps with DOM markers at zoom 14-15 to ensure no gaps
+        map.current.addLayer({
+          id: 'stations-simple',
+          type: 'circle',
+          source: 'stations',
+          minzoom: 11,
+          maxzoom: 15,
+          paint: {
+            'circle-radius': 6,
+            'circle-color': [
+              'case',
+              // Priority 1: Bike Angel points (yellow)
+              ['>', ['get', 'ba_points'], 0],
+              '#EAB308', // Yellow for BA points
+              // Priority 2: E-bikes available (green)
+              ['>', ['get', 'num_ebikes_available'], 0],
+              '#10B981', // Green for e-bikes
+              // Priority 3: Classic bikes available (amber)
+              ['>', ['get', 'num_bikes_available'], 0],
+              '#F59E0B', // Amber for classic bikes
+              // Priority 4: No bikes (gray)
+              '#9CA3AF', // Gray for unavailable
+            ],
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#fff',
+            'circle-opacity': 0.95,
+          },
+        });
+
+        // Note: At zoom 14+, we use DOM markers for compact/detailed views
+        // No need for a GPU text layer - DOM markers provide better styling and BA indicators
+
+        // EVENT DELEGATION (Stage 5 optimization) - Handle interactions on GPU layers
+        // This replaces thousands of per-marker event listeners with just a few map-level listeners
+
+        // Handle clicks on stations at far zoom (zoom 11-14, simple dots)
+        // At zoom > 14, DOM markers handle interactions
+        const handleStationClick = (e: mapboxgl.MapLayerMouseEvent) => {
+          if (!map.current) return;
+          const features = map.current.queryRenderedFeatures(e.point, {
+            layers: ['stations-simple'],
+          });
+          if (features.length === 0) return;
+
+          const stationId = features[0].properties?.station_id;
+          if (!stationId) return;
+
+          // Find the full station object from ref (always has latest data)
+          const station = stationsRef.current.find((s) => s.station_id === stationId);
+          if (!station) return;
+
+          // Handle station selection
+          if (!startStation) {
+            setStartStation(station);
+          } else if (!endStation && station.station_id !== startStation.station_id) {
+            setEndStation(station);
+          } else {
+            setStartStation(null);
+            setEndStation(null);
+          }
+        };
+
+        map.current.on('click', 'stations-simple', handleStationClick);
+
+        // Handle hover on unclustered stations - show popup
+        const handleStationMouseEnter = (e: mapboxgl.MapLayerMouseEvent) => {
+          if (!map.current || !sharedPopup.current) return;
+          map.current.getCanvas().style.cursor = 'pointer';
+
+          const features = map.current.queryRenderedFeatures(e.point, {
+            layers: ['stations-simple'],
+          });
+          if (features.length === 0) return;
+
+          const stationId = features[0].properties?.station_id;
+          if (!stationId) return;
+
+          // Find the full station object from ref (always has latest data)
+          const station = stationsRef.current.find((s) => s.station_id === stationId);
+          if (!station) return;
+
+          setHoveredStation(stationId);
+          sharedPopup.current
+            .setLngLat([station.lon, station.lat])
+            .setHTML(generatePopupHTML(station))
+            .addTo(map.current);
+        };
+
+        const handleStationMouseLeave = () => {
+          if (!map.current) return;
+          map.current.getCanvas().style.cursor = '';
+          setHoveredStation(null);
+          sharedPopup.current?.remove();
+        };
+
+        map.current.on('mouseenter', 'stations-simple', handleStationMouseEnter);
+        map.current.on('mouseleave', 'stations-simple', handleStationMouseLeave);
       }
     });
 
     // Update bounds and zoom on map movement
     map.current.on('moveend', () => {
       if (map.current) {
-        setBounds(map.current.getBounds());
-        setZoom(map.current.getZoom());
-        const center = map.current.getCenter();
-        setMapCenter({ lat: center.lat, lon: center.lng });
+        const mapBounds = map.current.getBounds();
+        if (mapBounds) {
+          setBounds(mapBounds);
+          const currentZoom = map.current.getZoom();
+          setZoom(currentZoom);
+          const center = map.current.getCenter();
+          setMapCenter({ lat: center.lat, lon: center.lng });
+
+          // Sync bounds, center, and zoom to Zustand store for StationSelector's visible-only filter
+          setMapBounds({
+            north: mapBounds.getNorth(),
+            south: mapBounds.getSouth(),
+            east: mapBounds.getEast(),
+            west: mapBounds.getWest(),
+          });
+          setMapCenterStore({ lat: center.lat, lon: center.lng });
+          setMapZoomStore(currentZoom);
+        }
       }
     });
 
     map.current.on('zoomend', () => {
       if (map.current) {
-        setZoom(map.current.getZoom());
+        const currentZoom = map.current.getZoom();
+        setZoom(currentZoom);
+        setMapZoomStore(currentZoom);
       }
     });
 
@@ -250,9 +500,10 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
       map.current?.remove();
       map.current = null;
     };
-  }, [resolvedTheme]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount, theme changes handled separately
 
-  // Update map style when theme changes
+  // Update map style when theme changes (preserve zoom/center)
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
 
@@ -262,7 +513,92 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
       if (map.current.isStyleLoaded()) {
         const currentStyle = map.current.getStyle();
         if (currentStyle && !currentStyle.sprite?.includes(resolvedTheme || 'light')) {
+          // Preserve current camera position
+          const currentCenter = map.current.getCenter();
+          const currentZoom = map.current.getZoom();
+          const currentBearing = map.current.getBearing();
+          const currentPitch = map.current.getPitch();
+
+          // Change style
           map.current.setStyle(mapStyle);
+
+          // Restore camera position after style loads
+          map.current.once('styledata', () => {
+            if (map.current) {
+              map.current.jumpTo({
+                center: currentCenter,
+                zoom: currentZoom,
+                bearing: currentBearing,
+                pitch: currentPitch,
+              });
+
+              // Re-add route layer after style change
+              if (!map.current.getSource('route')) {
+                map.current.addSource('route', {
+                  type: 'geojson',
+                  data: {
+                    type: 'Feature',
+                    properties: {},
+                    geometry: {
+                      type: 'LineString',
+                      coordinates: [],
+                    },
+                  },
+                });
+
+                map.current.addLayer({
+                  id: 'route',
+                  type: 'line',
+                  source: 'route',
+                  layout: {
+                    'line-join': 'round',
+                    'line-cap': 'round',
+                  },
+                  paint: {
+                    'line-color': '#3B82F6',
+                    'line-width': 5,
+                    'line-opacity': 0.75,
+                  },
+                });
+              }
+
+              // DEBUG: Re-add debug circle layers after style change
+              if (!map.current.getSource('debug-circle')) {
+                map.current.addSource('debug-circle', {
+                  type: 'geojson',
+                  data: {
+                    type: 'Feature',
+                    properties: {},
+                    geometry: {
+                      type: 'Polygon',
+                      coordinates: [[]],
+                    },
+                  },
+                });
+
+                map.current.addLayer({
+                  id: 'debug-circle-fill',
+                  type: 'fill',
+                  source: 'debug-circle',
+                  paint: {
+                    'fill-color': '#9333EA',
+                    'fill-opacity': 0.1,
+                  },
+                });
+
+                map.current.addLayer({
+                  id: 'debug-circle-outline',
+                  type: 'line',
+                  source: 'debug-circle',
+                  paint: {
+                    'line-color': '#9333EA',
+                    'line-width': 2,
+                    'line-opacity': 0.5,
+                  },
+                });
+              }
+            }
+          });
         }
       }
     } catch (error) {
@@ -337,7 +673,6 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
                 center: coords,
                 ...FLY_TO_OPTIONS,
               });
-              console.log('📍 Using user location:', coords);
             } else {
               // User is outside selected city - use city center instead
               map.current.flyTo({
@@ -345,25 +680,18 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
                 center: [cityConfig.mapCenter.lon, cityConfig.mapCenter.lat],
                 zoom: cityConfig.defaultZoom,
               });
-              console.log(
-                '📍 User location outside city bounds, using city center:',
-                cityConfig.mapCenter
-              );
             }
           }
           setInitialPositionSet(true);
         },
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         (_error) => {
-          console.log('📍 Geolocation denied/failed, using city center');
-
           if (map.current) {
             map.current.flyTo({
               ...FLY_TO_OPTIONS,
               center: [cityConfig.mapCenter.lon, cityConfig.mapCenter.lat],
               zoom: cityConfig.defaultZoom,
             });
-            console.log('📍 Using city center:', cityConfig.mapCenter);
           }
           setInitialPositionSet(true);
         },
@@ -380,233 +708,143 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
           center: [cityConfig.mapCenter.lon, cityConfig.mapCenter.lat],
           zoom: cityConfig.defaultZoom,
         });
-        console.log('📍 No geolocation support, using city center');
       }
       setInitialPositionSet(true);
     }
   }, [mapLoaded, stations, initialPositionSet, cityConfig]);
 
-  // Render clusters and individual points - only runs when viewport changes
+  // Render visible station markers - HYBRID APPROACH (Stage 3: Performance optimization)
+  // Only use DOM markers for zoom > 16 (detailed view) or route stations
+  // GPU layers handle zoom < 16
   useEffect(() => {
-    if (!map.current || !mapLoaded || clustersAndPoints.length === 0) return;
+    if (!map.current || !mapLoaded || visibleStations.length === 0) return;
+
+    // Get route station IDs (always need DOM markers)
+    const routeStationIds = new Set<string>();
+    if (startStation) routeStationIds.add(startStation.station_id);
+    if (endStation) routeStationIds.add(endStation.station_id);
+    waypoints.forEach((wp) => routeStationIds.add(wp.station_id));
+
+    // Determine which stations need DOM markers
+    const needsDOMMarker = (stationId: string) => {
+      // Route stations always get DOM markers
+      if (routeStationIds.has(stationId)) return true;
+      // At zoom > 14, all visible stations get DOM markers (compact or detailed view)
+      // This ensures BA indicators are visible at medium zoom
+      if (zoom > 14) return true;
+      return false;
+    };
 
     // Get current marker IDs that should be visible
     const currentIds = new Set<string>();
 
-    clustersAndPoints.forEach((feature) => {
-      const [lng, lat] = feature.geometry.coordinates;
-      const props = feature.properties;
+    visibleStations.forEach((feature) => {
+      const station = feature.properties.station;
+      const markerId = `station-${station.station_id}`;
 
-      if (props.cluster) {
-        // Cluster marker
-        const clusterId = `cluster-${feature.id}`;
-        currentIds.add(clusterId);
-
-        if (!markers.current.has(clusterId)) {
-          // Create NEW cluster marker
-          const el = document.createElement('div');
-          el.className = 'cluster-marker';
-          el.textContent = props.point_count?.toString() || '0';
-
-          el.addEventListener('click', () => {
-            if (map.current && supercluster.current) {
-              const expansionZoom = Math.min(
-                supercluster.current.getClusterExpansionZoom(feature.id as number),
-                20
-              );
-              map.current.flyTo({
-                center: [lng, lat],
-                zoom: expansionZoom,
-                duration: 500,
-              });
-            }
-          });
-
-          const marker = new mapboxgl.Marker({
-            element: el,
-            anchor: 'center',
-          })
-            .setLngLat([lng, lat])
-            .addTo(map.current!);
-
-          markers.current.set(clusterId, {
-            marker,
-            element: el,
-            clusterId: feature.id as number,
-            pointCount: props.point_count,
-          });
+      if (!needsDOMMarker(station.station_id)) {
+        // Station should use GPU layer rendering, not DOM marker
+        // Remove DOM marker if it exists
+        if (markers.current.has(markerId)) {
+          markers.current.get(markerId)?.marker.remove();
+          markers.current.delete(markerId);
         }
-      } else if (props.station) {
-        // Individual station marker
-        const station = props.station;
-        const markerId = `station-${station.station_id}`;
-        currentIds.add(markerId);
+        return;
+      }
 
-        const isStart = startStation?.station_id === station.station_id;
-        const isEnd = endStation?.station_id === station.station_id;
-        const isWaypoint = waypoints.some((wp) => wp.station_id === station.station_id);
+      currentIds.add(markerId);
 
-        if (!markers.current.has(markerId)) {
-          // Create new marker with bike type indicator
-          const color = getMarkerColor(station, isStart, isEnd, isWaypoint);
-          const size = isStart || isEnd || isWaypoint ? '32px' : '24px';
+      const isStart = startStation?.station_id === station.station_id;
+      const isEnd = endStation?.station_id === station.station_id;
+      const isWaypoint = waypoints.some((wp) => wp.station_id === station.station_id);
 
-          const el = document.createElement('div');
-          el.className = 'marker';
-          el.style.width = size;
-          el.style.height = size;
-          el.style.borderRadius = '50%';
-          el.style.backgroundColor = color;
-          el.style.border = '2px solid white';
-          el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
-          el.style.cursor = 'pointer';
-          el.style.display = 'flex';
-          el.style.alignItems = 'center';
-          el.style.justifyContent = 'center';
-          el.style.transition = 'width 0.2s ease, height 0.2s ease';
+      if (!markers.current.has(markerId)) {
+        // Create new unified marker container (holds single view that changes on zoom)
+        const currentMarkerType = getMarkerType(zoom);
+        const reward = bikeAngelRewards.get(station.station_id);
 
-          // Add bike type indicator (only for non-route stations)
-          if (!isStart && !isEnd && !isWaypoint) {
-            const regularBikes =
-              (station.num_bikes_available ?? 0) - (station.num_ebikes_available ?? 0);
-            const eBikes = station.num_ebikes_available ?? 0;
+        const el = renderUnifiedMarker(
+          station,
+          isStart,
+          isEnd,
+          isWaypoint,
+          currentMarkerType,
+          reward
+        );
 
-            // Create icon element
-            const icon = document.createElement('div');
-            icon.style.fontSize = '10px';
-            icon.style.lineHeight = '1';
-            icon.style.color = 'white';
-            icon.style.fontWeight = 'bold';
-            icon.style.textShadow = '0 1px 2px rgba(0,0,0,0.3)';
-
-            if (regularBikes > 0 && eBikes > 0) {
-              // Both types available - show split indicator
-              icon.innerHTML = '⚡';
-              icon.style.fontSize = '12px';
-            } else if (eBikes > 0) {
-              // Only e-bikes available
-              icon.innerHTML = '⚡';
-              icon.style.fontSize = '12px';
-            } else if (regularBikes > 0) {
-              // Only regular bikes available
-              icon.innerHTML = '🚲';
-              icon.style.fontSize = '11px';
-            } else {
-              // No bikes available
-              icon.innerHTML = '∅';
-              icon.style.fontSize = '10px';
-              icon.style.color = '#6B7280';
-            }
-
-            el.appendChild(icon);
+        el.addEventListener('mouseenter', () => {
+          setHoveredStation(station.station_id);
+          if (sharedPopup.current && map.current) {
+            sharedPopup.current
+              .setLngLat([station.lon, station.lat])
+              .setHTML(generatePopupHTML(station))
+              .addTo(map.current);
           }
+        });
 
-          el.addEventListener('mouseenter', () => {
-            setHoveredStation(station.station_id);
-            if (sharedPopup.current && map.current) {
-              sharedPopup.current
-                .setLngLat([station.lon, station.lat])
-                .setHTML(generatePopupHTML(station))
-                .addTo(map.current);
-            }
-          });
+        el.addEventListener('mouseleave', () => {
+          setHoveredStation(null);
+          sharedPopup.current?.remove();
+        });
 
-          el.addEventListener('mouseleave', () => {
-            setHoveredStation(null);
-            sharedPopup.current?.remove();
-          });
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (!startStation) {
+            setStartStation(station);
+          } else if (!endStation && station.station_id !== startStation.station_id) {
+            setEndStation(station);
+          } else {
+            setStartStation(null);
+            setEndStation(null);
+          }
+        });
 
-          el.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (!startStation) {
-              setStartStation(station);
-            } else if (!endStation && station.station_id !== startStation.station_id) {
-              setEndStation(station);
-            } else {
-              setStartStation(null);
-              setEndStation(null);
-            }
-          });
+        const marker = new mapboxgl.Marker({
+          element: el,
+          anchor: 'center',
+        })
+          .setLngLat([station.lon, station.lat])
+          .addTo(map.current!);
 
-          const marker = new mapboxgl.Marker(el)
-            .setLngLat([station.lon, station.lat])
-            .addTo(map.current!);
+        markers.current.set(markerId, {
+          marker,
+          element: el,
+          station,
+          markerType: currentMarkerType,
+        });
+      } else {
+        // Marker exists - update its view if zoom crossed a breakpoint
+        const markerData = markers.current.get(markerId);
+        if (markerData && markerData.station) {
+          const requiredMarkerType = getMarkerType(zoom);
 
-          markers.current.set(markerId, { marker, element: el, station });
-        } else {
-          // Update existing marker appearance
-          const markerData = markers.current.get(markerId);
-          if (markerData) {
-            const color = getMarkerColor(station, isStart, isEnd, isWaypoint);
-            const size = isStart || isEnd || isWaypoint ? '32px' : '24px';
-
-            markerData.element.style.backgroundColor = color;
-            markerData.element.style.width = size;
-            markerData.element.style.height = size;
-
-            // Update bike type indicator
-            if (!isStart && !isEnd && !isWaypoint) {
-              const regularBikes =
-                (station.num_bikes_available ?? 0) - (station.num_ebikes_available ?? 0);
-              const eBikes = station.num_ebikes_available ?? 0;
-
-              // Find or create icon element
-              let icon = markerData.element.querySelector('div');
-              if (!icon) {
-                icon = document.createElement('div');
-                icon.style.fontSize = '10px';
-                icon.style.lineHeight = '1';
-                icon.style.color = 'white';
-                icon.style.fontWeight = 'bold';
-                icon.style.textShadow = '0 1px 2px rgba(0,0,0,0.3)';
-                markerData.element.appendChild(icon);
-              }
-
-              if (regularBikes > 0 && eBikes > 0) {
-                icon.innerHTML = '⚡';
-                icon.style.fontSize = '12px';
-                icon.style.color = 'white';
-              } else if (eBikes > 0) {
-                icon.innerHTML = '⚡';
-                icon.style.fontSize = '12px';
-                icon.style.color = 'white';
-              } else if (regularBikes > 0) {
-                icon.innerHTML = '🚲';
-                icon.style.fontSize = '11px';
-                icon.style.color = 'white';
-              } else {
-                icon.innerHTML = '∅';
-                icon.style.fontSize = '10px';
-                icon.style.color = '#6B7280';
-              }
-            } else {
-              // Remove icon for route stations
-              const icon = markerData.element.querySelector('div');
-              if (icon) {
-                icon.remove();
-              }
-            }
+          // Update marker view if zoom level changed
+          if (markerData.markerType !== requiredMarkerType) {
+            const reward = bikeAngelRewards.get(station.station_id);
+            updateMarkerType(
+              markerData.element,
+              requiredMarkerType,
+              station,
+              isStart,
+              isEnd,
+              isWaypoint,
+              reward
+            );
+            markerData.markerType = requiredMarkerType;
           }
         }
       }
     });
 
-    // Remove markers that are no longer visible
+    // Remove markers that are no longer visible or no longer need DOM rendering
     markers.current.forEach((markerData, id) => {
       if (!currentIds.has(id)) {
         markerData.marker.remove();
         markers.current.delete(id);
       }
     });
-
-    // Log marker statistics
-    const clusterCount = Array.from(currentIds).filter((id) => id.startsWith('cluster-')).length;
-    const stationCount = Array.from(currentIds).filter((id) => id.startsWith('station-')).length;
-    console.log(
-      `📍 Zoom ${Math.floor(zoom)}: ${clusterCount} clusters, ${stationCount} stations (${currentIds.size} total markers)`
-    );
   }, [
-    clustersAndPoints,
+    visibleStations,
     mapLoaded,
     generatePopupHTML,
     setHoveredStation,
@@ -615,11 +853,51 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
     startStation,
     endStation,
     waypoints,
-    getMarkerColor,
     zoom,
+    bikeAngelRewards,
   ]);
 
-  // Handle hover state updates separately
+  // Update GeoJSON source with memoized station data (PERFORMANCE OPTIMIZATION - Stage 1 + 4)
+  useEffect(() => {
+    if (!map.current || !mapLoaded || geoJsonFeatures.length === 0) return;
+
+    const source = map.current.getSource('stations') as mapboxgl.GeoJSONSource;
+    if (!source) return;
+
+    // Use pre-calculated memoized features (Stage 4 optimization)
+    source.setData({
+      type: 'FeatureCollection',
+      features: geoJsonFeatures,
+    });
+  }, [geoJsonFeatures, mapLoaded]);
+
+  // Update all markers when Bike Angel toggle changes
+  useEffect(() => {
+    if (!mapLoaded) return;
+
+    markers.current.forEach((markerData, id) => {
+      if (id.startsWith('station-') && markerData.station && markerData.markerType) {
+        const station = markerData.station;
+        const isStart = startStation?.station_id === station.station_id;
+        const isEnd = endStation?.station_id === station.station_id;
+        const isWaypoint = waypoints.some((wp) => wp.station_id === station.station_id);
+        const reward = showBikeAngelRewards ? bikeAngelRewards.get(station.station_id) : undefined;
+
+        // Re-render marker with or without rewards
+        updateMarkerType(
+          markerData.element,
+          markerData.markerType,
+          station,
+          isStart,
+          isEnd,
+          isWaypoint,
+          reward
+        );
+      }
+    });
+  }, [showBikeAngelRewards, bikeAngelRewards, mapLoaded, startStation, endStation, waypoints]);
+
+  // Handle z-index layering for hover and route stations
   useEffect(() => {
     if (!mapLoaded) return;
 
@@ -631,15 +909,8 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
         const isEnd = endStation?.station_id === station.station_id;
         const isWaypoint = waypoints.some((wp) => wp.station_id === station.station_id);
 
-        // Update size and z-index based on hover state
-        const baseSize = isStart || isEnd || isWaypoint ? '32px' : '24px';
-        const hoverSize = isStart || isEnd || isWaypoint ? '36px' : '28px';
-        const size = isHovered ? hoverSize : baseSize;
-        markerData.element.style.width = size;
-        markerData.element.style.height = size;
-
-        // Set z-index for proper layering
-        // Use the marker's getElement() to get the actual DOM element
+        // Update z-index for proper layering
+        // (CSS handles hover scaling, BA info is built into markers)
         const markerElement = markerData.marker.getElement();
         if (markerElement) {
           if (isHovered) {
@@ -786,6 +1057,41 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
       });
     }
   }, [startStation, endStation, mapLoaded]);
+
+  // DEBUG: Update the radius circle when mapCenter, zoom, or showVisibleOnly changes
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+
+    const source = map.current.getSource('debug-circle') as mapboxgl.GeoJSONSource;
+    if (!source) return;
+
+    if (showVisibleOnly && mapCenter) {
+      // Calculate dynamic radius based on zoom level (in meters)
+      const radiusMeters = getRadiusForZoom(zoom);
+
+      // Show the circle - generate polygon coordinates
+      const circleCoords = createCirclePolygon(mapCenter, radiusMeters);
+
+      source.setData({
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Polygon',
+          coordinates: [circleCoords],
+        },
+      });
+    } else {
+      // Hide the circle - set empty geometry
+      source.setData({
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Polygon',
+          coordinates: [[]],
+        },
+      });
+    }
+  }, [mapCenter, showVisibleOnly, mapLoaded, createCirclePolygon, zoom]);
 
   return <div ref={mapContainer} className="w-full h-full" />;
 }
