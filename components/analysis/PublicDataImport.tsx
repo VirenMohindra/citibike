@@ -9,9 +9,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { usePublicTripImport } from '@/lib/db/hooks/usePublicTripImport';
 import { useI18n } from '@/lib/i18n';
+import { useToast } from '@/lib/toast-context';
 
 export default function PublicDataImport() {
   const { t } = useI18n();
+  const { addToast } = useToast();
   const {
     progress,
     result,
@@ -38,7 +40,7 @@ export default function PublicDataImport() {
 
     // Validate file type
     if (!file.name.endsWith('.json')) {
-      alert('Please select a JSON file');
+      addToast(t('toast.import.selectFile'), 'error');
       return;
     }
 

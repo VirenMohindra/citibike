@@ -73,7 +73,7 @@ export default function TripDetailsSyncButton() {
         },
         {
           batchSize: 1,
-          rateLimit: 2000, // 2 seconds between requests = 0.5 req/sec (very safe)
+          rateLimit: 500, // 0.5 seconds between requests = 2 req/sec (safe and efficient)
         }
       );
 

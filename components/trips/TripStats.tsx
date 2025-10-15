@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAppStore } from '@/lib/store';
+import { useToast } from '@/lib/toast-context';
 import { db, createSyncManager, useTrips } from '@/lib/db';
 import {
   calculateTripStats,
@@ -19,6 +20,7 @@ import type { User } from '@supabase/supabase-js';
 
 export default function TripStats() {
   const { t, formatDistance } = useI18n();
+  const { addToast } = useToast();
   const { citibikeUser, distanceUnit } = useAppStore();
   const [stats, setStats] = useState<TripStatsType | null>(null);
   const [tripsPerMonth, setTripsPerMonth] = useState<number>(0);
@@ -115,7 +117,7 @@ export default function TripStats() {
     };
   }, [supabaseConfigured]);
 
-  // Sync trips using new SyncManager
+  // Sync trips and trip details using new SyncManager
   const syncTrips = async () => {
     if (!citibikeUser) return;
 
@@ -123,19 +125,41 @@ export default function TripStats() {
       setIsSyncing(true);
       const syncManager = createSyncManager(citibikeUser.id);
 
-      // Sync with progress updates
+      // Step 1: Sync trip list with progress updates
+      console.log('📋 Syncing trips...');
       const result = await syncManager.syncTrips((progress) => {
-        setSyncProgress(progress);
+        setSyncProgress({ page: progress.page, totalSynced: progress.totalSynced });
       });
 
-      alert(
-        t(result.totalSynced === 1 ? 'tripStats.syncedTrips' : 'tripStats.syncedTrips_plural', {
-          count: result.totalSynced,
-        })
+      console.log(`✅ Trips synced: ${result.totalSynced} new trips`);
+
+      // Step 2: Sync trip details automatically after trips are synced
+      console.log('🔄 Auto-syncing trip details for all trips...');
+      const detailsResult = await syncManager.syncTripDetails(
+        (progress) => {
+          const percent = Math.round((progress.completed / progress.total) * 100);
+          console.log(
+            `📊 Trip details: ${progress.completed}/${progress.total} (${percent}%) - ${progress.failed} failed`
+          );
+        },
+        {
+          rateLimit: 500, // 2 req/sec
+          batchSize: 1,
+        }
       );
+
+      console.log(
+        `✅ Trip details synced: ${detailsResult.fetched} fetched, ${detailsResult.failed} failed`
+      );
+
+      // Show combined result message
+      const pluralTrip = result.totalSynced !== 1 ? 's' : '';
+      const pluralDetail = detailsResult.fetched !== 1 ? 's' : '';
+      const message = `Synced ${result.totalSynced} trip${pluralTrip} and fetched details for ${detailsResult.fetched} detail${pluralDetail}`;
+      addToast(message, 'success');
     } catch (error) {
       console.error('Sync error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to sync trips');
+      addToast(error instanceof Error ? error.message : 'Failed to sync trips', 'error');
     } finally {
       setIsSyncing(false);
       setSyncProgress(null);
@@ -151,7 +175,7 @@ export default function TripStats() {
       const dbTrips = await db.trips.where({ userId: citibikeUser.id }).toArray();
 
       if (dbTrips.length === 0) {
-        alert(t('tripStats.noDataToExport'));
+        addToast(t('toast.export.noData'), 'info');
         return;
       }
 
@@ -184,10 +208,10 @@ export default function TripStats() {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      alert(t('tripStats.dataExported'));
+      addToast(t('toast.export.success'), 'success');
     } catch (error) {
       console.error('Export error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to export data');
+      addToast(error instanceof Error ? error.message : t('toast.export.failed'), 'error');
     }
   };
 
@@ -197,7 +221,7 @@ export default function TripStats() {
       await signInWithGoogle();
     } catch (error) {
       console.error('Sign in error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to sign in');
+      addToast(error instanceof Error ? error.message : 'Failed to sign in', 'error');
     }
   };
 
@@ -206,31 +230,36 @@ export default function TripStats() {
       await signOut();
     } catch (error) {
       console.error('Sign out error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to sign out');
+      addToast(error instanceof Error ? error.message : 'Failed to sign out', 'error');
     }
   };
 
   const handleBackup = async () => {
     if (!citibikeUser) return;
     if (!supabaseUser) {
-      alert(t('tripStats.notAuthenticated'));
+      addToast(t('toast.backup.failed').replace('{{error}}', 'Not authenticated'), 'error');
       return;
     }
 
     try {
       setIsBackingUp(true);
+      addToast(t('toast.backup.started'), 'info');
       const count = await backupTripsToCloud(citibikeUser.id);
-      alert(t(count === 1 ? 'tripStats.backedUp' : 'tripStats.backedUp_plural', { count }));
+      addToast(
+        t(count === 1 ? 'toast.backup.success' : 'toast.backup.success_plural', { count }),
+        'success'
+      );
 
       // Refresh cloud trip count
       const newCount = await getCloudTripCount();
       setCloudTripCount(newCount);
     } catch (error) {
       console.error('Backup error:', error);
-      alert(
-        t('tripStats.backupFailed', {
+      addToast(
+        t('toast.backup.failed', {
           error: error instanceof Error ? error.message : 'Unknown error',
-        })
+        }),
+        'error'
       );
     } finally {
       setIsBackingUp(false);
@@ -240,20 +269,25 @@ export default function TripStats() {
   const handleRestore = async () => {
     if (!citibikeUser) return;
     if (!supabaseUser) {
-      alert(t('tripStats.notAuthenticated'));
+      addToast(t('toast.restore.failed').replace('{{error}}', 'Not authenticated'), 'error');
       return;
     }
 
     try {
       setIsRestoring(true);
+      addToast(t('toast.restore.started'), 'info');
       const count = await restoreTripsFromCloud(citibikeUser.id);
-      alert(t(count === 1 ? 'tripStats.restored' : 'tripStats.restored_plural', { count }));
+      addToast(
+        t(count === 1 ? 'toast.restore.success' : 'toast.restore.success_plural', { count }),
+        'success'
+      );
     } catch (error) {
       console.error('Restore error:', error);
-      alert(
-        t('tripStats.restoreFailed', {
+      addToast(
+        t('toast.restore.failed', {
           error: error instanceof Error ? error.message : 'Unknown error',
-        })
+        }),
+        'error'
       );
     } finally {
       setIsRestoring(false);
@@ -283,9 +317,9 @@ export default function TripStats() {
           </button>
           <button
             onClick={async () => {
-              if (confirm(t('tripStats.confirmClearAll')) && citibikeUser) {
+              if (confirm(t('toast.clearData.confirm')) && citibikeUser) {
                 await db.trips.where({ userId: citibikeUser.id }).delete();
-                alert(t('tripStats.allDataCleared'));
+                addToast(t('toast.clearData.success'), 'success');
               }
             }}
             disabled={isSyncing || !citibikeUser}

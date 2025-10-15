@@ -5,8 +5,9 @@ import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/lib/store';
 import { useI18n } from '@/lib/i18n';
+import { useToast } from '@/lib/toast-context';
 import { API_ROUTES } from '@/config/routes';
-import { db } from '@/lib/db';
+import { db, createSyncManager } from '@/lib/db';
 import { useTokenRefresh } from '@/hooks/useTokenRefresh';
 import UserProfile from './UserProfile';
 
@@ -19,6 +20,7 @@ interface CitibikeLoginProps {
 export default function CitibikeLogin({ compact = false }: CitibikeLoginProps) {
   const { t } = useI18n();
   const router = useRouter();
+  const { addToast } = useToast();
   const { citibikeUser, setCitibikeUser, setSyncState } = useAppStore();
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<LoginStep>('phone');
@@ -192,6 +194,9 @@ export default function CitibikeLogin({ compact = false }: CitibikeLoginProps) {
       // Store user in state
       setCitibikeUser(data.user);
 
+      // Trigger background auto-sync of trips and trip details
+      triggerAutoSync(data.user.id);
+
       // Reset form
       setPhoneNumber('');
       setOtpCode('');
@@ -200,7 +205,7 @@ export default function CitibikeLogin({ compact = false }: CitibikeLoginProps) {
       setIsOpen(false);
 
       // Show success message
-      alert(t('auth.messages.successfulConnection'));
+      addToast(t('auth.messages.successfulConnection'), 'success');
     } catch (err) {
       setError(err instanceof Error ? err.message : t('common.error'));
     } finally {
@@ -237,6 +242,9 @@ export default function CitibikeLogin({ compact = false }: CitibikeLoginProps) {
       // Store user in state
       setCitibikeUser(data.user);
 
+      // Trigger background auto-sync of trips and trip details
+      triggerAutoSync(data.user.id);
+
       // Fetch full profile data
       try {
         const profileResponse = await fetch(API_ROUTES.USER.PROFILE);
@@ -272,12 +280,61 @@ export default function CitibikeLogin({ compact = false }: CitibikeLoginProps) {
       setIsOpen(false);
 
       // Show success message
-      alert(t('auth.messages.successfulConnection'));
+      addToast(t('auth.messages.successfulConnection'), 'success');
     } catch (err) {
       setError(err instanceof Error ? err.message : t('common.error'));
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Auto-sync trips and trip details after successful login (background task)
+  const triggerAutoSync = (userId: string) => {
+    // Use Promise.resolve().then() to run in background without blocking UI
+    Promise.resolve().then(async () => {
+      try {
+        addToast(t('toast.autoSync.started'), 'info');
+        console.log('🔄 Auto-syncing trips and details after login...');
+        const syncManager = createSyncManager(userId);
+
+        // Step 1: Sync trip list
+        await syncManager.syncTrips((progress) => {
+          console.log(`📋 Syncing trips: page ${progress.page}, ${progress.totalSynced} total`);
+        });
+
+        addToast(t('toast.autoSync.tripsComplete'), 'success');
+
+        // Step 2: Sync trip details (limited to first 50 trips on auto-sync)
+        console.log('🔄 Auto-syncing trip details (limited to first 50 trips)...');
+        const detailsResult = await syncManager.syncTripDetails(
+          (progress) => {
+            console.log(
+              `📊 Details: ${progress.completed}/${progress.total} (${Math.round((progress.completed / progress.total) * 100)}%)`
+            );
+          },
+          {
+            rateLimit: 500, // 2 req/sec
+            batchSize: 1,
+            maxTrips: 50, // Limit initial auto-sync
+          }
+        );
+
+        console.log('✅ Auto-sync complete - trips and details loaded');
+
+        // Show final success message
+        if (detailsResult.failed > 0) {
+          addToast(
+            `${t('toast.autoSync.detailsComplete')} (${detailsResult.failed} ${t('tripsPage.sync.progressFailed')})`,
+            'info'
+          );
+        } else {
+          addToast(t('toast.autoSync.allComplete'), 'success');
+        }
+      } catch (error) {
+        console.error('❌ Auto-sync failed (non-blocking):', error);
+        addToast(t('toast.autoSync.detailsFailed'), 'error');
+      }
+    });
   };
 
   const handleLogout = async () => {
@@ -574,7 +631,7 @@ export default function CitibikeLogin({ compact = false }: CitibikeLoginProps) {
                   <button
                     onClick={() => {
                       setIsOpen(false);
-                      alert(t('auth.messages.manualUploadComingSoon'));
+                      addToast(t('auth.messages.manualUploadComingSoon'), 'info');
                     }}
                     className="text-sm text-[#0066CC] hover:underline"
                   >

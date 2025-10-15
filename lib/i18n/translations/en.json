@@ -42,6 +42,52 @@
     "bikeAngel": "Bike Angel",
     "theme": "Theme"
   },
+  "toast": {
+    "autoSync": {
+      "started": "Syncing your trips and details...",
+      "tripsComplete": "Trips synced!",
+      "detailsComplete": "Trip details synced!",
+      "allComplete": "Done! Your trips and details are up to date.",
+      "tripsFailed": "Some trips failed to sync",
+      "detailsFailed": "Some trip details failed to sync"
+    },
+    "manualSync": {
+      "started": "Starting sync...",
+      "complete": "Synced {{trips}} trip{{plural}} and {{details}} detail{{detailPlural}}",
+      "failed": "Sync failed"
+    },
+    "clearData": {
+      "confirm": "Are you sure you want to clear all trip data? This cannot be undone.",
+      "success": "All trip data has been cleared!"
+    },
+    "export": {
+      "success": "Trip data exported successfully!",
+      "noData": "No trips to export. Sync some trips first!",
+      "failed": "Export failed"
+    },
+    "import": {
+      "selectFile": "Please select a JSON file",
+      "success": "Trip data imported successfully!",
+      "failed": "Import failed"
+    },
+    "backup": {
+      "started": "Backing up to cloud...",
+      "success": "Backed up {{count}} trip to cloud!",
+      "success_plural": "Backed up {{count}} trips to cloud!",
+      "failed": "Backup failed: {{error}}"
+    },
+    "restore": {
+      "started": "Restoring from cloud...",
+      "success": "Restored {{count}} trip from cloud!",
+      "success_plural": "Restored {{count}} trips from cloud!",
+      "failed": "Restore failed: {{error}}"
+    },
+    "routeCopy": "Link copied to clipboard!",
+    "routeSave": "Route saved successfully!",
+    "routeDelete": "Route deleted successfully!",
+    "sessionError": "Session expired. Please log in again.",
+    "rateLimitError": "Rate limited. Please wait a few minutes and try again."
+  },
   "map": {
     "title": "Citibike Station Map",
     "searchPlaceholder": "Search for a station...",
