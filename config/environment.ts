@@ -9,11 +9,13 @@ import { z } from 'zod';
 // Environment Schema
 // ============================================
 const envSchema = z.object({
-  // Required for map functionality
+  // Required for map functionality (optional in test/CI environments)
   NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: z
     .string()
-    .min(1, 'Mapbox access token is required')
-    .startsWith('pk.', 'Invalid Mapbox token format'),
+    .optional()
+    .refine((val) => !val || val.startsWith('pk.'), {
+      message: 'Mapbox token must start with "pk." if provided',
+    }),
 
   // Optional - Required for authentication features
   CITIBIKE_CLIENT_ID: z.string().optional(),

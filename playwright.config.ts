@@ -87,11 +87,10 @@ export default defineConfig({
     // Show server logs in CI to debug issues
     stdout: process.env.CI ? 'pipe' : 'ignore',
     stderr: 'pipe',
-    // Only pass Mapbox token if defined (otherwise Next.js will load from .env.local)
-    ...(process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN && {
-      env: {
-        NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN,
-      },
-    }),
+    // Pass environment variables to dev server
+    env: {
+      // CI sets this via GitHub secrets, local uses .env.local
+      NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || '',
+    },
   },
 });
