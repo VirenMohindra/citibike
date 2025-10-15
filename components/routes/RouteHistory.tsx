@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useAppStore } from '@/lib/store';
 import { useI18n } from '@/lib/i18n';
-import type { StationWithStatus, SavedRoute } from '@/lib/types';
-import { History, Trash2, Clock, MapPin, Navigation2 } from 'lucide-react';
+import type { SavedRoute, StationWithStatus } from '@/lib/types';
+import { Clock, History, MapPin, Navigation2, Trash2 } from 'lucide-react';
 import type { RouteProfile } from './RouteProfileSelector';
 
 interface RouteHistoryProps {
@@ -164,7 +164,7 @@ export default function RouteHistory({
 
           {/* Saved Routes List */}
           {savedRoutes.length === 0 ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+            <div className="p-4 text-center text-gray-500 dark:text-gray-400">
               <History className="w-8 h-8 mx-auto mb-2 text-gray-400 dark:text-gray-600" />
               <p className="text-sm font-medium">{t('routeHistory.noRoutes')}</p>
               <p className="text-xs mt-1">{t('routeHistory.noRoutesDescription')}</p>

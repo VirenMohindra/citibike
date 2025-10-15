@@ -7,6 +7,7 @@ import { useAppStore } from '@/lib/store';
 import { useI18n } from '@/lib/i18n';
 import { API_ROUTES } from '@/config/routes';
 import { db } from '@/lib/db';
+import { useTokenRefresh } from '@/hooks/useTokenRefresh';
 import UserProfile from './UserProfile';
 
 type LoginStep = 'phone' | 'otp' | 'email_challenge' | 'complete';
@@ -21,6 +22,9 @@ export default function CitibikeLogin({ compact = false }: CitibikeLoginProps) {
   const { citibikeUser, setCitibikeUser, setSyncState } = useAppStore();
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<LoginStep>('phone');
+
+  // Enable automatic token refresh when user is logged in
+  useTokenRefresh();
 
   // Phone step
   const [phoneNumber, setPhoneNumber] = useState('');

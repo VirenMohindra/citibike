@@ -163,17 +163,15 @@ function HomeContent() {
       </button>
 
       {/* Station Selector Panel - Desktop */}
-      <div className="hidden sm:block absolute top-20 left-4 z-10 w-96 bg-white dark:bg-gray-900 rounded-lg shadow-lg overflow-hidden max-h-[calc(100vh-120px)] flex flex-col">
-        <div className="flex-shrink-0">
-          <StationSelector stations={stations} isLoading={isLoading} />
-          <WaypointManager stations={stations} />
-          <RouteProfileSelector onProfileChange={setRouteProfile} />
-          <RouteHistory
-            stations={stations}
-            currentRouteProfile={routeProfile}
-            onRouteLoad={setRouteProfile}
-          />
-        </div>
+      <div className="hidden sm:block absolute top-20 left-4 z-10 w-96 bg-white dark:bg-gray-900 rounded-lg shadow-lg max-h-[calc(100vh-120px)] flex flex-col overflow-y-auto">
+        <StationSelector stations={stations} isLoading={isLoading} />
+        <WaypointManager stations={stations} />
+        <RouteProfileSelector onProfileChange={setRouteProfile} />
+        <RouteHistory
+          stations={stations}
+          currentRouteProfile={routeProfile}
+          onRouteLoad={setRouteProfile}
+        />
       </div>
 
       {/* Mobile Station Selector Panel - Bottom Sheet */}
@@ -216,10 +214,12 @@ function HomeContent() {
 
       {/* Route Panel - Desktop */}
       {startStation && endStation && (
-        <div className="hidden sm:block absolute top-20 right-4 z-10 w-80 bg-white dark:bg-gray-900 rounded-lg shadow-lg overflow-hidden">
-          <RoutePanel />
+        <div className="hidden sm:block absolute top-20 right-4 z-10 w-80 bg-white dark:bg-gray-900 rounded-lg shadow-lg max-h-[calc(100vh-120px)] flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto">
+            <RoutePanel />
+          </div>
           {/* Share Button */}
-          <div className="p-3 border-t border-gray-200 dark:border-gray-700">
+          <div className="p-3 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
             <button
               onClick={handleShare}
               className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"

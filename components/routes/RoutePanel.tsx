@@ -64,9 +64,9 @@ export default function RoutePanel() {
   const estimatedMinutes = Math.round((distance / 1000 / 15) * 60);
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="p-4 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 text-white">
+      <div className="p-4 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 text-white flex-shrink-0">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-lg font-semibold">{t('map.route.panel.title')}</h2>
           <div className="flex items-center gap-2">
@@ -99,8 +99,8 @@ export default function RoutePanel() {
         <p className="text-sm text-blue-100">{t('map.route.panel.estimatedRoute')}</p>
       </div>
 
-      {/* Route Details */}
-      <div className="p-4 space-y-4">
+      {/* Route Details - Scrollable */}
+      <div className="p-4 space-y-4 flex-1 overflow-y-auto">
         {/* Distance & Time */}
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
