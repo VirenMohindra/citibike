@@ -81,13 +81,7 @@ export default function StationSelector({ stations = [], isLoading }: StationSel
       const radius = getRadiusForZoom(mapZoom);
 
       // Check if station is within radius from map center
-      return isWithinRadius(
-        mapCenter.lat,
-        mapCenter.lon,
-        station.lat,
-        station.lon,
-        radius
-      );
+      return isWithinRadius(mapCenter.lat, mapCenter.lon, station.lat, station.lon, radius);
     },
     [mapCenter, mapZoom]
   );

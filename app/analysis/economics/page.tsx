@@ -67,7 +67,9 @@ export default function EconomicsPage() {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
-            <p className="text-gray-600 dark:text-gray-400">{t('economicsPage.loading.economicsData')}</p>
+            <p className="text-gray-600 dark:text-gray-400">
+              {t('economicsPage.loading.economicsData')}
+            </p>
           </div>
         </div>
       </div>
@@ -159,10 +161,13 @@ export default function EconomicsPage() {
                 {t('economicsPage.cards.totalCost.title')}
               </div>
               <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                {t('economicsPage.units.currency')}{monthlyEconomics.totalCitibikeCost.toFixed(2)}
+                {t('economicsPage.units.currency')}
+                {monthlyEconomics.totalCitibikeCost.toFixed(2)}
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-                {t('economicsPage.units.currency')}{monthlyEconomics.avgCostPerTrip.toFixed(2)} {t('economicsPage.cards.totalCost.perTrip')}
+                {t('economicsPage.units.currency')}
+                {monthlyEconomics.avgCostPerTrip.toFixed(2)}{' '}
+                {t('economicsPage.cards.totalCost.perTrip')}
               </div>
             </div>
 
@@ -178,12 +183,14 @@ export default function EconomicsPage() {
                     : 'text-red-600 dark:text-red-400'
                 }`}
               >
-                {monthlyEconomics.savings >= 0 ? '+' : ''}{t('economicsPage.units.currency')}
+                {monthlyEconomics.savings >= 0 ? '+' : ''}
+                {t('economicsPage.units.currency')}
                 {Math.abs(monthlyEconomics.savings).toFixed(2)}
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-500 mt-2">
                 {monthlyEconomics.savingsPercent >= 0 ? '+' : ''}
-                {monthlyEconomics.savingsPercent.toFixed(1)}{t('economicsPage.units.percent')}{' '}
+                {monthlyEconomics.savingsPercent.toFixed(1)}
+                {t('economicsPage.units.percent')}{' '}
                 {t('economicsPage.cards.savings.vsOptimalSubway')}
               </div>
             </div>
@@ -200,7 +207,8 @@ export default function EconomicsPage() {
                     : 'text-red-600 dark:text-red-400'
                 }`}
               >
-                {monthlyEconomics.totalNetValue >= 0 ? '+' : ''}{t('economicsPage.units.currency')}
+                {monthlyEconomics.totalNetValue >= 0 ? '+' : ''}
+                {t('economicsPage.units.currency')}
                 {Math.abs(monthlyEconomics.totalNetValue).toFixed(2)}
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-500 mt-2">
@@ -222,7 +230,8 @@ export default function EconomicsPage() {
                     {t('economicsPage.costBreakdown.citibike.membership')}
                   </span>
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {t('economicsPage.units.currency')}{monthlyEconomics.membershipCost.toFixed(2)}
+                    {t('economicsPage.units.currency')}
+                    {monthlyEconomics.membershipCost.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
@@ -230,7 +239,8 @@ export default function EconomicsPage() {
                     {t('economicsPage.costBreakdown.citibike.ebikeFees')}
                   </span>
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {t('economicsPage.units.currency')}{monthlyEconomics.ebikeFees.toFixed(2)}
+                    {t('economicsPage.units.currency')}
+                    {monthlyEconomics.ebikeFees.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
@@ -238,7 +248,8 @@ export default function EconomicsPage() {
                     {t('economicsPage.costBreakdown.citibike.overageFees')}
                   </span>
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {t('economicsPage.units.currency')}{monthlyEconomics.overageFees.toFixed(2)}
+                    {t('economicsPage.units.currency')}
+                    {monthlyEconomics.overageFees.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-2 pt-4 border-t-2 border-gray-300 dark:border-gray-600">
@@ -246,7 +257,8 @@ export default function EconomicsPage() {
                     {t('economicsPage.costBreakdown.citibike.total')}
                   </span>
                   <span className="text-base font-bold text-blue-600 dark:text-blue-400">
-                    {t('economicsPage.units.currency')}{monthlyEconomics.totalCitibikeCost.toFixed(2)}
+                    {t('economicsPage.units.currency')}
+                    {monthlyEconomics.totalCitibikeCost.toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -263,7 +275,8 @@ export default function EconomicsPage() {
                     {t('economicsPage.costBreakdown.subway.payPerRide')}
                   </span>
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {t('economicsPage.units.currency')}{monthlyEconomics.subwayPayPerRideCost.toFixed(2)}
+                    {t('economicsPage.units.currency')}
+                    {monthlyEconomics.subwayPayPerRideCost.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
@@ -271,7 +284,8 @@ export default function EconomicsPage() {
                     {t('economicsPage.costBreakdown.subway.unlimited')}
                   </span>
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {t('economicsPage.units.currency')}{monthlyEconomics.subwayUnlimitedCost.toFixed(2)}
+                    {t('economicsPage.units.currency')}
+                    {monthlyEconomics.subwayUnlimitedCost.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-700">
@@ -279,7 +293,8 @@ export default function EconomicsPage() {
                     {t('economicsPage.costBreakdown.subway.optimalChoice')}
                   </span>
                   <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                    {t('economicsPage.units.currency')}{monthlyEconomics.optimalSubwayCost.toFixed(2)}
+                    {t('economicsPage.units.currency')}
+                    {monthlyEconomics.optimalSubwayCost.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-2 pt-4 border-t-2 border-gray-300 dark:border-gray-600">
@@ -293,7 +308,8 @@ export default function EconomicsPage() {
                         : 'text-red-600 dark:text-red-400'
                     }`}
                   >
-                    {monthlyEconomics.savings >= 0 ? '+' : ''}{t('economicsPage.units.currency')}
+                    {monthlyEconomics.savings >= 0 ? '+' : ''}
+                    {t('economicsPage.units.currency')}
                     {Math.abs(monthlyEconomics.savings).toFixed(2)}
                   </span>
                 </div>
@@ -315,7 +331,8 @@ export default function EconomicsPage() {
                       {t('economicsPage.timeValue.usagePattern.classicBikes')}
                     </span>
                     <span className="font-medium text-gray-900 dark:text-gray-100">
-                      {monthlyEconomics.classicPercent.toFixed(0)}{t('economicsPage.units.percent')}
+                      {monthlyEconomics.classicPercent.toFixed(0)}
+                      {t('economicsPage.units.percent')}
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -331,7 +348,8 @@ export default function EconomicsPage() {
                       {t('economicsPage.timeValue.usagePattern.ebikes')}
                     </span>
                     <span className="font-medium text-gray-900 dark:text-gray-100">
-                      {monthlyEconomics.ebikePercent.toFixed(0)}{t('economicsPage.units.percent')}
+                      {monthlyEconomics.ebikePercent.toFixed(0)}
+                      {t('economicsPage.units.percent')}
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -348,7 +366,8 @@ export default function EconomicsPage() {
                     {t('economicsPage.timeValue.usagePattern.avgClassicDuration')}
                   </span>
                   <span className="text-gray-700 dark:text-gray-300">
-                    {Math.round(monthlyEconomics.avgClassicDuration / 60)} {t('economicsPage.units.min')}
+                    {Math.round(monthlyEconomics.avgClassicDuration / 60)}{' '}
+                    {t('economicsPage.units.min')}
                   </span>
                 </div>
                 <div className="flex justify-between text-xs">
@@ -356,7 +375,8 @@ export default function EconomicsPage() {
                     {t('economicsPage.timeValue.usagePattern.avgEbikeDuration')}
                   </span>
                   <span className="text-gray-700 dark:text-gray-300">
-                    {Math.round(monthlyEconomics.avgEbikeDuration / 60)} {t('economicsPage.units.min')}
+                    {Math.round(monthlyEconomics.avgEbikeDuration / 60)}{' '}
+                    {t('economicsPage.units.min')}
                   </span>
                 </div>
               </div>
@@ -405,7 +425,8 @@ export default function EconomicsPage() {
                       : 'text-red-600 dark:text-red-400'
                   }`}
                 >
-                  {monthlyEconomics.avgNetValue >= 0 ? '+' : ''}{t('economicsPage.units.currency')}
+                  {monthlyEconomics.avgNetValue >= 0 ? '+' : ''}
+                  {t('economicsPage.units.currency')}
                   {Math.abs(monthlyEconomics.avgNetValue).toFixed(2)}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -442,7 +463,8 @@ export default function EconomicsPage() {
                       {t('economicsPage.breakeven.currentUsage.ebikeUsage')}
                     </span>
                     <span className="font-medium text-gray-900 dark:text-gray-100">
-                      {breakevenAnalysis.avgEbikePercent.toFixed(0)}{t('economicsPage.units.percent')}
+                      {breakevenAnalysis.avgEbikePercent.toFixed(0)}
+                      {t('economicsPage.units.percent')}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -450,7 +472,8 @@ export default function EconomicsPage() {
                       {t('economicsPage.breakeven.currentUsage.avgCostPerMonth')}
                     </span>
                     <span className="font-medium text-blue-600 dark:text-blue-400">
-                      {t('economicsPage.units.currency')}{breakevenAnalysis.currentMonthlyCost.toFixed(2)}
+                      {t('economicsPage.units.currency')}
+                      {breakevenAnalysis.currentMonthlyCost.toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -472,7 +495,8 @@ export default function EconomicsPage() {
                           : 'text-green-600 dark:text-green-400'
                       }`}
                     >
-                      {breakevenAnalysis.breakevenVsPayPerRide.toFixed(0)} {t('economicsPage.units.trips')}
+                      {breakevenAnalysis.breakevenVsPayPerRide.toFixed(0)}{' '}
+                      {t('economicsPage.units.trips')}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -486,7 +510,8 @@ export default function EconomicsPage() {
                           : 'text-green-600 dark:text-green-400'
                       }`}
                     >
-                      {breakevenAnalysis.breakevenVsUnlimited.toFixed(0)} {t('economicsPage.units.trips')}
+                      {breakevenAnalysis.breakevenVsUnlimited.toFixed(0)}{' '}
+                      {t('economicsPage.units.trips')}
                     </span>
                   </div>
                 </div>
@@ -504,7 +529,8 @@ export default function EconomicsPage() {
                     {t('economicsPage.breakeven.scenarios.allClassicUnder45')}
                   </div>
                   <div className="text-lg font-bold text-green-600 dark:text-green-400">
-                    {t('economicsPage.units.currency')}{breakevenAnalysis.scenarios.allClassicUnder45.toFixed(2)}
+                    {t('economicsPage.units.currency')}
+                    {breakevenAnalysis.scenarios.allClassicUnder45.toFixed(2)}
                   </div>
                 </div>
                 <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded">
@@ -512,7 +538,8 @@ export default function EconomicsPage() {
                     {t('economicsPage.breakeven.scenarios.allEbike')}
                   </div>
                   <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                    {t('economicsPage.units.currency')}{breakevenAnalysis.scenarios.allEbike.toFixed(2)}
+                    {t('economicsPage.units.currency')}
+                    {breakevenAnalysis.scenarios.allEbike.toFixed(2)}
                   </div>
                 </div>
                 <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded">
@@ -520,7 +547,8 @@ export default function EconomicsPage() {
                     {t('economicsPage.breakeven.scenarios.optimal')}
                   </div>
                   <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
-                    {t('economicsPage.units.currency')}{breakevenAnalysis.scenarios.optimal.toFixed(2)}
+                    {t('economicsPage.units.currency')}
+                    {breakevenAnalysis.scenarios.optimal.toFixed(2)}
                   </div>
                 </div>
                 <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded">
@@ -528,7 +556,8 @@ export default function EconomicsPage() {
                     {t('economicsPage.breakeven.scenarios.currentSubway')}
                   </div>
                   <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
-                    {t('economicsPage.units.currency')}{breakevenAnalysis.scenarios.currentSubway.toFixed(2)}
+                    {t('economicsPage.units.currency')}
+                    {breakevenAnalysis.scenarios.currentSubway.toFixed(2)}
                   </div>
                 </div>
               </div>

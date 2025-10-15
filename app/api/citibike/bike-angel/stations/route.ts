@@ -121,7 +121,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const stationRewards: StationReward[] = Array.from(stationRewardsMap.values()) as StationReward[];
+    const stationRewards: StationReward[] = Array.from(
+      stationRewardsMap.values()
+    ) as StationReward[];
 
     // Log summary of directional rewards
     const directionalRewards = stationRewards.filter(

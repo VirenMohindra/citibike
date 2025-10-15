@@ -140,7 +140,8 @@ export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDas
             {t('benchmarkingDashboard.stats.ebikeUsage.label')}
           </div>
           <div className="text-2xl font-bold text-gray-900 dark:text-white">
-            {personalStats.ebikePercent.toFixed(1)}{t('benchmarkingDashboard.units.percent')}
+            {personalStats.ebikePercent.toFixed(1)}
+            {t('benchmarkingDashboard.units.percent')}
           </div>
           <div
             className={`text-sm mt-1 ${
@@ -150,7 +151,8 @@ export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDas
             }`}
           >
             {ebikeComparison > 0 ? '+' : ''}
-            {ebikeComparison.toFixed(1)}{t('benchmarkingDashboard.units.percent')}{' '}
+            {ebikeComparison.toFixed(1)}
+            {t('benchmarkingDashboard.units.percent')}{' '}
             {t('benchmarkingDashboard.comparison.vsAverage')} (
             {publicStats.bikeTypes!.ebikePercent.toFixed(1)}
             {t('benchmarkingDashboard.units.percent')})
@@ -177,7 +179,8 @@ export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDas
             {durationComparison > 0 ? '+' : ''}
             {durationComparison.toFixed(1)} {t('benchmarkingDashboard.units.minutes')}{' '}
             {t('benchmarkingDashboard.comparison.vsAverage')} (
-            {publicStats.averages!.durationMinutes.toFixed(1)} {t('benchmarkingDashboard.units.minutes')})
+            {publicStats.averages!.durationMinutes.toFixed(1)}{' '}
+            {t('benchmarkingDashboard.units.minutes')})
           </div>
         </div>
 
@@ -201,7 +204,8 @@ export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDas
             {distanceComparison > 0 ? '+' : ''}
             {distanceComparison.toFixed(2)} {t('benchmarkingDashboard.units.miles')}{' '}
             {t('benchmarkingDashboard.comparison.vsAverage')} (
-            {publicStats.averages!.distanceMiles.toFixed(2)} {t('benchmarkingDashboard.units.miles')})
+            {publicStats.averages!.distanceMiles.toFixed(2)}{' '}
+            {t('benchmarkingDashboard.units.miles')})
           </div>
         </div>
       </div>
@@ -234,7 +238,8 @@ export default function BenchmarkingDashboard({ personalTrips }: BenchmarkingDas
                     <span className="text-sm text-gray-600 dark:text-gray-400">
                       {t('benchmarkingDashboard.ridingPatterns.you')} {personalPercent.toFixed(1)}
                       {t('benchmarkingDashboard.units.percent')} |{' '}
-                      {t('benchmarkingDashboard.ridingPatterns.average')} {pattern.percent.toFixed(1)}
+                      {t('benchmarkingDashboard.ridingPatterns.average')}{' '}
+                      {pattern.percent.toFixed(1)}
                       {t('benchmarkingDashboard.units.percent')}
                     </span>
                   </div>

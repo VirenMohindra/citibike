@@ -86,37 +86,51 @@ export default function PublicDataImport() {
       {/* Current Stats */}
       {isLoadingStats ? (
         <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <p className="text-sm text-gray-600 dark:text-gray-400">{t('publicDataImport.loadingStats')}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {t('publicDataImport.loadingStats')}
+          </p>
         </div>
       ) : stats?.hasData ? (
         <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg space-y-3">
-          <h3 className="font-semibold text-gray-900 dark:text-white">{t('publicDataImport.currentData')}</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white">
+            {t('publicDataImport.currentData')}
+          </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <div className="text-gray-600 dark:text-gray-400">{t('publicDataImport.totalTrips')}</div>
+              <div className="text-gray-600 dark:text-gray-400">
+                {t('publicDataImport.totalTrips')}
+              </div>
               <div className="text-lg font-bold text-gray-900 dark:text-white">
                 {stats.totalTrips.toLocaleString()}
               </div>
             </div>
             {stats.bikeTypes && (
               <div>
-                <div className="text-gray-600 dark:text-gray-400">{t('publicDataImport.ebikes')}</div>
+                <div className="text-gray-600 dark:text-gray-400">
+                  {t('publicDataImport.ebikes')}
+                </div>
                 <div className="text-lg font-bold text-gray-900 dark:text-white">
-                  {stats.bikeTypes.ebikePercent.toFixed(1)}{t('publicDataImport.percent')}
+                  {stats.bikeTypes.ebikePercent.toFixed(1)}
+                  {t('publicDataImport.percent')}
                 </div>
               </div>
             )}
             {stats.memberTypes && (
               <div>
-                <div className="text-gray-600 dark:text-gray-400">{t('publicDataImport.members')}</div>
+                <div className="text-gray-600 dark:text-gray-400">
+                  {t('publicDataImport.members')}
+                </div>
                 <div className="text-lg font-bold text-gray-900 dark:text-white">
-                  {stats.memberTypes.memberPercent.toFixed(1)}{t('publicDataImport.percent')}
+                  {stats.memberTypes.memberPercent.toFixed(1)}
+                  {t('publicDataImport.percent')}
                 </div>
               </div>
             )}
             {stats.averages && (
               <div>
-                <div className="text-gray-600 dark:text-gray-400">{t('publicDataImport.avgDistance')}</div>
+                <div className="text-gray-600 dark:text-gray-400">
+                  {t('publicDataImport.avgDistance')}
+                </div>
                 <div className="text-lg font-bold text-gray-900 dark:text-white">
                   {stats.averages.distanceMiles.toFixed(2)} mi
                 </div>
@@ -125,7 +139,9 @@ export default function PublicDataImport() {
           </div>
           {stats.datasetMonths && stats.datasetMonths.length > 0 && (
             <div className="text-sm">
-              <span className="text-gray-600 dark:text-gray-400">{t('publicDataImport.datasets')} </span>
+              <span className="text-gray-600 dark:text-gray-400">
+                {t('publicDataImport.datasets')}{' '}
+              </span>
               <span className="text-gray-900 dark:text-white font-medium">
                 {stats.datasetMonths.join(', ')}
               </span>
@@ -208,7 +224,8 @@ export default function PublicDataImport() {
               {progress.message}
             </span>
             <span className="text-sm text-gray-600 dark:text-gray-400">
-              {progress.percentComplete}{t('publicDataImport.percent')}
+              {progress.percentComplete}
+              {t('publicDataImport.percent')}
             </span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -218,7 +235,8 @@ export default function PublicDataImport() {
             />
           </div>
           <p className="text-xs text-gray-600 dark:text-gray-400">
-            {progress.current.toLocaleString()} / {progress.total.toLocaleString()} {t('publicDataImport.progressTrips')}
+            {progress.current.toLocaleString()} / {progress.total.toLocaleString()}{' '}
+            {t('publicDataImport.progressTrips')}
           </p>
         </div>
       )}
@@ -237,7 +255,9 @@ export default function PublicDataImport() {
                 : 'text-red-900 dark:text-red-100'
             }`}
           >
-            {result.success ? t('publicDataImport.importComplete') : t('publicDataImport.importFailed')}
+            {result.success
+              ? t('publicDataImport.importComplete')
+              : t('publicDataImport.importFailed')}
           </h3>
           <p
             className={`text-sm mb-3 ${
@@ -315,7 +335,9 @@ export default function PublicDataImport() {
 
       {/* Instructions */}
       <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t('publicDataImport.howToImportTitle')}</h3>
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+          {t('publicDataImport.howToImportTitle')}
+        </h3>
         <ol className="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-decimal list-inside">
           <li>
             {t('publicDataImport.step1')}{' '}

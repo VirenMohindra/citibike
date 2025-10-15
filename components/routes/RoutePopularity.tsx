@@ -203,9 +203,7 @@ export default function RoutePopularity({
           </p>
         )}
         {popularityLevel === 'rare' && (
-          <p className="text-gray-700 dark:text-gray-300">
-            {t('routePopularity.insights.rare')}
-          </p>
+          <p className="text-gray-700 dark:text-gray-300">{t('routePopularity.insights.rare')}</p>
         )}
       </div>
     </div>
