@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures/coverage';
 
 /**
  * Error Handling & Edge Cases Tests
@@ -463,7 +463,7 @@ test.describe('User Input Validation', () => {
         xssExecuted = true;
       });
 
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
       expect(xssExecuted).toBe(false);
     }
@@ -480,7 +480,7 @@ test.describe('User Input Validation', () => {
       dialogShown = true;
     });
 
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
     expect(dialogShown).toBe(false);
   });

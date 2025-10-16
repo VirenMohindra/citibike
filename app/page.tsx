@@ -110,6 +110,7 @@ function HomeContent() {
 
   return (
     <main className="flex flex-col w-screen h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+      <h1 className="sr-only">{t('page.title')}</h1>
       <NavBar />
 
       {/* Mobile Selected Station Badges */}
@@ -186,9 +187,16 @@ function HomeContent() {
               <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-2"></div>
               <button
                 onClick={() => setMobilePanelOpen(false)}
+                aria-label={t('page.closePanel')}
                 className="absolute right-4 top-4 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -261,9 +269,16 @@ function HomeContent() {
               <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-2"></div>
               <button
                 onClick={() => setMobileRouteOpen(false)}
+                aria-label={t('page.closePanel')}
                 className="absolute right-4 top-4 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"

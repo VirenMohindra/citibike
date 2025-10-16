@@ -3,10 +3,10 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import { I18nProvider } from '@/lib/i18n';
 import { ThemeProvider } from '@/lib/theme-context';
 import { ToastProvider } from '@/lib/toast-context';
-import './globals.css';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import React from 'react';
+import './globals.css';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',

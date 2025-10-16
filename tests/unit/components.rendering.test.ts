@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures/coverage';
 
 /**
  * Component Rendering Tests
@@ -47,7 +47,9 @@ test.describe('Navigation Components', () => {
       const initialTheme = await page.locator('html').evaluate((el) => el.className);
       await themeToggle.click();
       // Wait a bit for theme transition
-      await page.waitForTimeout(100);
+      await page
+        .waitForFunction(() => document.documentElement.className, { timeout: 500 })
+        .catch(() => {});
       const newTheme = await page.locator('html').evaluate((el) => el.className);
       expect(initialTheme).not.toEqual(newTheme);
     }
@@ -118,7 +120,11 @@ test.describe('Station Selection Components', () => {
 
     if ((await stationInput.count()) > 0) {
       await stationInput.fill('times');
-      await page.waitForTimeout(300); // Wait for filtering
+      await page
+        .locator('[role="option"]')
+        .first()
+        .waitFor({ state: 'visible', timeout: 2000 })
+        .catch(() => {}); // Wait for filtering
 
       // Should show filtered results
       const options = page.locator('[role="option"], li:has-text("times")');
@@ -134,12 +140,16 @@ test.describe('Station Selection Components', () => {
 
     if ((await stationInput.count()) > 0) {
       await stationInput.fill('times');
-      await page.waitForTimeout(300);
+      await page
+        .locator('[role="option"]')
+        .first()
+        .waitFor({ state: 'visible', timeout: 2000 })
+        .catch(() => {});
 
       const option = page.locator('[role="option"]').first();
       if ((await option.count()) > 0) {
         await option.click();
-        await page.waitForTimeout(200);
+        await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
         // Input should show selected value
         const inputValue = await stationInput.inputValue();
@@ -230,7 +240,6 @@ test.describe('Control Components', () => {
 
       // Look for replay controls
       const playButton = page.locator('button[aria-label*="play" i], button:has-text("►")');
-      const pauseButton = page.locator('button[aria-label*="pause" i], button:has-text("⏸")');
 
       if ((await playButton.count()) > 0) {
         await expect(playButton).toBeVisible();
@@ -335,8 +344,6 @@ test.describe('Modal & Dialog Components', () => {
     const dialog = page.locator('[role="dialog"]').first();
 
     if ((await dialog.count()) > 0) {
-      const backdrop = dialog.locator('..').filter({ hasText: 'close' }).first();
-
       // Just verify modal is dismissible
       await expect(dialog).toBeVisible();
     }
@@ -418,7 +425,9 @@ test.describe('Interactive Elements', () => {
 
     if ((await button.count()) > 0) {
       await button.hover();
-      await page.waitForTimeout(100);
+      await page
+        .waitForFunction(() => document.documentElement.className, { timeout: 500 })
+        .catch(() => {});
 
       const hoverStyles = await button.evaluate((el) => {
         const styles = window.getComputedStyle(el);

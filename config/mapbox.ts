@@ -76,6 +76,10 @@ export const COMMON_MAP_OPTIONS: Partial<mapboxgl.MapboxOptions> = {
   renderWorldCopies: false, // Don't render duplicate worlds
   attributionControl: false, // We add compact attribution separately
 
+  // Headless Chrome / CI compatibility (required for Playwright E2E tests)
+  // See: https://github.com/mapbox/mapbox-gl-js/issues/7721
+  preserveDrawingBuffer: true, // Required for map rendering in headless Chrome
+
   // Interaction settings
   dragRotate: false, // Disable rotation for simpler bike navigation
   touchPitch: false, // Disable pitch on touch devices

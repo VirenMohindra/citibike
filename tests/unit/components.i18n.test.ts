@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures/coverage';
 import en from '@/lib/i18n/translations/en.json';
 import fs from 'fs';
 import path from 'path';

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures/coverage';
 import { useAppStore } from '@/lib/store';
 import type { StationWithStatus, RouteInfo, CitibikeUser } from '@/lib/types';
 

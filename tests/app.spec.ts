@@ -50,7 +50,7 @@ test.describe('Citibike Route Planner', () => {
 
     // Click first station in list
     await stationList.click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
     // Check if start station is selected
     const startIndicator = page.locator('text="Start"').first();
@@ -62,7 +62,7 @@ test.describe('Citibike Route Planner', () => {
       // Click a different station
       const secondStation = page.locator('[role="listitem"]').nth(5);
       await secondStation.click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
       // Check if end station is selected
       const endIndicator = page.locator('text="End"').first();
@@ -101,7 +101,7 @@ test.describe('Citibike Route Planner', () => {
     await page.mouse.up();
 
     // Wait for moveend event to fire
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
     // Get new marker count
     const afterPanCount = await page.locator('.marker').count();
@@ -109,7 +109,7 @@ test.describe('Citibike Route Planner', () => {
 
     // Zoom in
     await page.keyboard.press('='); // Zoom in shortcut
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
     const afterZoomCount = await page.locator('.marker').count();
     console.log(`📍 After zoom in: ${afterZoomCount} markers`);
@@ -142,7 +142,7 @@ test.describe('Citibike Route Planner', () => {
     await page.waitForSelector('.marker', { timeout: TIMEOUTS.marker }).catch(() => {
       console.log('Note: Using GPU layer markers at this zoom level');
     });
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle', { timeout: 2000 }).catch(() => {});
 
     // Pan to trigger viewport update
     const mapCanvas = page.locator('.mapboxgl-canvas');
@@ -150,7 +150,7 @@ test.describe('Citibike Route Planner', () => {
     await page.mouse.down();
     await page.mouse.move(150, 150, { steps: 5 });
     await page.mouse.up();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
     // Check console logs
     console.log('\n📊 Performance Logs:');
@@ -197,7 +197,7 @@ test.describe('Citibike Route Planner', () => {
     await searchInput.fill('26');
 
     // Wait for search results
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
     // Take screenshot of search results
     await page.screenshot({

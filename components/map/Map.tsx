@@ -269,6 +269,12 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
       [cityConfig.maxBounds[2], cityConfig.maxBounds[3]], // Northeast
     ];
 
+    console.log(
+      '🗺️ Initializing Mapbox map with preserveDrawingBuffer:',
+      COMMON_MAP_OPTIONS.preserveDrawingBuffer
+    );
+    console.log('🔑 Mapbox token present:', !!mapboxgl.accessToken);
+
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: mapStyle,
@@ -289,6 +295,7 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
     });
 
     map.current.on('load', () => {
+      console.log('✅ Mapbox map loaded successfully');
       setMapLoaded(true);
       if (map.current) {
         setBounds(map.current.getBounds());
@@ -516,6 +523,11 @@ export default function MapComponent(props: MapProps = { stations: [], routeProf
         setZoom(currentZoom);
         setMapZoomStore(currentZoom);
       }
+    });
+
+    // Add error handler for map initialization failures
+    map.current.on('error', (e) => {
+      console.error('❌ Mapbox map error:', e);
     });
 
     return () => {

@@ -137,6 +137,8 @@ jobs:
         run: npm run build
         env:
           NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: ${{ secrets.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
   # E2E tests with matrix strategy for parallelization
   e2e:
@@ -186,6 +188,8 @@ jobs:
         run: npx playwright test --shard=${{ matrix.shard }}/4
         env:
           NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: ${{ secrets.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
       - name: Upload test results
         if: always()
@@ -201,7 +205,7 @@ jobs:
   quality-gate:
     name: Quality Gate
     runs-on: ubuntu-latest
-    needs: [prettier, lint, typecheck, build]
+    needs: [prettier, lint, typecheck, build, e2e]
     if: always()
     steps:
       - name: Check results
@@ -209,7 +213,8 @@ jobs:
           if [[ "${{ needs.prettier.result }}" != "success" ]] || \
              [[ "${{ needs.lint.result }}" != "success" ]] || \
              [[ "${{ needs.typecheck.result }}" != "success" ]] || \
-             [[ "${{ needs.build.result }}" != "success" ]]; then
+             [[ "${{ needs.build.result }}" != "success" ]] || \
+             [[ "${{ needs.e2e.result }}" != "success" ]]; then
             echo "❌ Quality checks failed"
             exit 1
           fi
@@ -224,7 +229,8 @@ jobs:
               'Prettier': '${{ needs.prettier.result }}',
               'ESLint': '${{ needs.lint.result }}',
               'TypeScript': '${{ needs.typecheck.result }}',
-              'Build': '${{ needs.build.result }}'
+              'Build': '${{ needs.build.result }}',
+              'E2E Tests': '${{ needs.e2e.result }}'
             };
 
             const failed = Object.entries(results)

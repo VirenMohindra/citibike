@@ -227,7 +227,7 @@ test.describe('Accessibility Tests', () => {
       document.documentElement.style.zoom = '2';
     });
 
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle', { timeout: 2000 }).catch(() => {});
 
     // Check if content is still accessible
     const mainContent = await page.locator('main, [role="main"], #root, #__next').first();

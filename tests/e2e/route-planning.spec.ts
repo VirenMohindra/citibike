@@ -27,7 +27,7 @@ test.describe('Route Planning Journey', () => {
     // Step 1: Search for start station
     const searchInput = page.locator('input[placeholder*="Search stations"]').first();
     await searchInput.fill('Madison');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
     // Step 2: Select first search result as start station - stations are clickable divs
     const firstResult = page
@@ -42,7 +42,7 @@ test.describe('Route Planning Journey', () => {
     // Step 3: Search for end station
     await searchInput.clear();
     await searchInput.fill('Union');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
     // Step 4: Select end station
     const endResult = page
@@ -52,7 +52,7 @@ test.describe('Route Planning Journey', () => {
     await endResult.click();
 
     // Step 5: Verify route is displayed (may show in RoutePanel)
-    await page.waitForTimeout(1000); // Wait for route calculation
+    await page.waitForLoadState('networkidle', { timeout: 2000 }).catch(() => {}); // Wait for route calculation
 
     // Check for route elements
     const routeElement = page.locator('text=/Route|Distance|Duration/i').first();
@@ -113,7 +113,7 @@ test.describe('Route Planning Journey', () => {
 
     // Click first station
     await stationList.first().click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
     // Should show start station selected
     const startIndicator = page.locator('text="Start"').first();
@@ -125,7 +125,7 @@ test.describe('Route Planning Journey', () => {
       // Click another station if available
       if (stationCount > 5) {
         await stationList.nth(5).click();
-        await page.waitForTimeout(500);
+        await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
         // Should show end station selected
         const endIndicator = page.locator('text="End"').first();
@@ -142,9 +142,9 @@ test.describe('Route Planning Journey', () => {
     const stationList = page.locator('[role="listitem"]');
 
     await stationList.first().click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
     await stationList.nth(3).click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
     // Check if route information is displayed
     const startIndicator = page.locator('text="Start"').first();
@@ -192,9 +192,9 @@ test.describe('Route Planning Journey', () => {
     const stationList = page.locator('[role="listitem"]');
 
     await stationList.first().click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
     await stationList.nth(3).click();
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle', { timeout: 2000 }).catch(() => {});
 
     // Check if route is created
     const startIndicator = page.locator('text="Start"').first();
@@ -234,9 +234,9 @@ test.describe('Route Planning Journey', () => {
     const stationList = page.locator('[role="listitem"]');
 
     await stationList.first().click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
     await stationList.nth(3).click();
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle', { timeout: 2000 }).catch(() => {});
 
     // Check if route is created
     const startIndicator = page.locator('text="Start"').first();

@@ -37,4 +37,4 @@ repos:
         files: \.(ts|tsx)$
         pass_filenames: false
         # Only run once per commit, not per file
-        stages: [commit]
+        stages: [pre-commit]
