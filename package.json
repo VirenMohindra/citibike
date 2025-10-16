@@ -13,6 +13,11 @@
     "test:a11y": "playwright test tests/a11y",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
+    "test:coverage": "npm run test:unit && npm run coverage:summary",
+    "coverage:clean": "rm -rf .nyc_output coverage",
+    "coverage:summary": "node scripts/coverage-summary.js",
+    "coverage:report": "node scripts/generate-coverage-report.js",
+    "coverage:open": "open coverage/index.html",
     "analyze": "ANALYZE=true next build",
     "analyze:server": "BUNDLE_ANALYZE=server next build",
     "analyze:browser": "BUNDLE_ANALYZE=browser next build",
@@ -42,6 +47,7 @@
     "@babel/traverse": "^7.28.4",
     "@babel/types": "^7.28.4",
     "@eslint/eslintrc": "^3",
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@next/bundle-analyzer": "^15.5.4",
     "@playwright/test": "^1.56.0",
     "@tailwindcss/postcss": "^4",
@@ -54,9 +60,15 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
     "eslint-plugin-react": "^7.37.5",
+    "istanbul-api": "^3.0.0",
+    "istanbul-lib-coverage": "^3.2.2",
+    "istanbul-lib-report": "^3.0.1",
+    "istanbul-reports": "^3.2.0",
+    "nyc": "^17.1.0",
     "prettier": "^3.6.2",
     "sharp": "^0.34.4",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "v8-to-istanbul": "^9.3.0"
   }
 }

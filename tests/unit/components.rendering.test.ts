@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures/coverage';
 
 /**
  * Component Rendering Tests
@@ -230,7 +230,6 @@ test.describe('Control Components', () => {
 
       // Look for replay controls
       const playButton = page.locator('button[aria-label*="play" i], button:has-text("►")');
-      const pauseButton = page.locator('button[aria-label*="pause" i], button:has-text("⏸")');
 
       if ((await playButton.count()) > 0) {
         await expect(playButton).toBeVisible();
@@ -335,8 +334,6 @@ test.describe('Modal & Dialog Components', () => {
     const dialog = page.locator('[role="dialog"]').first();
 
     if ((await dialog.count()) > 0) {
-      const backdrop = dialog.locator('..').filter({ hasText: 'close' }).first();
-
       // Just verify modal is dismissible
       await expect(dialog).toBeVisible();
     }

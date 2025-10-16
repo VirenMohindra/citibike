@@ -4,7 +4,7 @@ import { defineConfig, devices } from '@playwright/test';
 const TIMEOUTS = {
   // Test execution timeouts
   test: 60 * 1000, // 60s - global test timeout (allows for map + interactions)
-  action: 30 * 1000, // 30s - individual action timeout (marker clicks need time to become interactive)
+  action: 120 * 1000, // 120s - individual action timeout (increased for CI stability with Mapbox)
   navigation: 30 * 1000, // 30s - page navigation timeout
 
   // WebGL/Canvas loading (for Mapbox in CI)
@@ -31,9 +31,9 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
 
   // Use optimal number of workers
-  // CI: Use 50% of available cores for stability
+  // CI: Use 1 worker for maximum stability with Mapbox WebGL rendering
   // Local: Use all available cores for speed
-  workers: process.env.CI ? '50%' : undefined,
+  workers: process.env.CI ? 1 : undefined,
 
   // Better reporting in CI
   reporter: process.env.CI ? [['html'], ['github'], ['list']] : 'list',

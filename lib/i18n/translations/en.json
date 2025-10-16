@@ -553,6 +553,7 @@
     "toggleRewards": "Toggle Bike Angel rewards on map"
   },
   "page": {
+    "title": "Citibike Route Planner - NYC Bike Share Navigation",
     "errorLoadingTitle": "Error Loading Stations",
     "errorLoadingMessage": "Failed to fetch Citibike station data. Please try refreshing the page.",
     "refreshPage": "Refresh Page",
@@ -567,7 +568,8 @@
     "loadingStations": "Loading Citibike stations...",
     "clickToStart": "👆 Click on a station or tap \"Select Stations\" to start",
     "linkCopied": "Link copied to clipboard!",
-    "tripHistory": "Trip History"
+    "tripHistory": "Trip History",
+    "closePanel": "Close panel"
   },
   "tripStats": {
     "title": "Your Stats",

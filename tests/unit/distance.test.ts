@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures/coverage';
 import { calculateDistance, findNearestStations } from '@/lib/gbfs';
 import type { StationWithStatus } from '@/lib/types';
 
