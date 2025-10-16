@@ -14,7 +14,7 @@ import { test, expect } from '../fixtures/coverage';
 test.describe('Route Planning Workflow', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('complete route planning journey', async ({ page }) => {
@@ -164,7 +164,7 @@ test.describe('Route Planning Workflow', () => {
 test.describe('Trip History Workflow', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('view trip history journey', async ({ page }) => {
@@ -260,7 +260,7 @@ test.describe('Trip History Workflow', () => {
 test.describe('Station Discovery Workflow', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('browse and search stations journey', async ({ page }) => {
@@ -380,7 +380,7 @@ test.describe('Station Discovery Workflow', () => {
 test.describe('Settings Workflow', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('theme preference workflow', async ({ page }) => {
@@ -521,7 +521,7 @@ test.describe('Settings Workflow', () => {
 test.describe('Share Workflow', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('complete share route workflow', async ({ page }) => {
@@ -563,7 +563,7 @@ test.describe('Share Workflow', () => {
 
               // Step 4: Simulate loading from shared link
               await page.goto(currentUrl);
-              await page.waitForLoadState('networkidle');
+              await page.waitForLoadState('domcontentloaded');
               await page.waitForTimeout(500);
 
               // Step 5: Verify route is loaded from URL
@@ -617,7 +617,7 @@ test.describe('Share Workflow', () => {
 test.describe('Map Interaction Workflow', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('zoom and pan map workflow', async ({ page }) => {
@@ -692,7 +692,7 @@ test.describe('Map Interaction Workflow', () => {
 test.describe('Accessibility Workflow', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('keyboard navigation workflow', async ({ page }) => {

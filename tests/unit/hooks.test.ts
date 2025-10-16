@@ -14,7 +14,7 @@ import { test, expect } from '../fixtures/coverage';
 test.describe('useCity Hook', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('should provide current city configuration', async ({ page }) => {
@@ -66,7 +66,7 @@ test.describe('useCity Hook', () => {
 test.describe('useUrlState Hook', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('should sync start station to URL', async ({ page }) => {
@@ -112,8 +112,8 @@ test.describe('useUrlState Hook', () => {
   test('should load state from URL on mount', async ({ page }) => {
     // Navigate with URL parameters
     await page.goto('/?from=times-square&to=central-park');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(1000);
 
     // Check if stations were loaded from URL
     const inputs = await page.locator('input').all();
@@ -133,7 +133,7 @@ test.describe('useUrlState Hook', () => {
 
   test('should support city parameter in URL', async ({ page }) => {
     await page.goto('/?city=nyc');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const url = page.url();
     // URL might normalize or keep the city parameter
@@ -165,7 +165,7 @@ test.describe('useUrlState Hook', () => {
     // Navigate with UUID-style parameter
     const uuid = '66dbc420-1234-5678-9abc-def012345678';
     await page.goto(`/?from=${uuid}`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Page should handle UUID format (might show not found but shouldn't crash)
     const hasCriticalError = await page.locator('text=/critical|fatal|crash/i').count();
@@ -176,7 +176,7 @@ test.describe('useUrlState Hook', () => {
 test.describe('useTheme Hook', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('should toggle between light and dark themes', async ({ page }) => {
@@ -209,7 +209,7 @@ test.describe('useTheme Hook', () => {
 
       // Reload page
       await page.reload();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       const themeAfterReload = await page.locator('html').getAttribute('class');
 
@@ -224,7 +224,7 @@ test.describe('useTheme Hook', () => {
     await page.evaluate(() => localStorage.clear());
 
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Page should load successfully without theme preference
     const hasContent = await page.locator('body').count();
@@ -235,7 +235,7 @@ test.describe('useTheme Hook', () => {
 test.describe('Store Hooks (Zustand)', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('should maintain station selection state', async ({ page }) => {
@@ -350,7 +350,7 @@ test.describe('Store Hooks (Zustand)', () => {
 test.describe('useTokenRefresh Hook', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('should check token expiry on mount', async ({ page }) => {
@@ -381,7 +381,7 @@ test.describe('useTokenRefresh Hook', () => {
     await page.context().clearCookies();
 
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Page should not have critical errors without token
     const hasCriticalError = await page.locator('text=/critical|fatal/i').count();
@@ -427,7 +427,7 @@ test.describe('useTokenRefresh Hook', () => {
     });
 
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Set token to expire soon
     await page.evaluate(() => {
@@ -446,13 +446,13 @@ test.describe('useTokenRefresh Hook', () => {
 test.describe('Hook Lifecycle', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('should cleanup on unmount', async ({ page }) => {
     // Navigate to page with hooks
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Navigate away
     await page.goto('/about').catch(() => {
@@ -516,7 +516,7 @@ test.describe('Hook Lifecycle', () => {
 test.describe('Hook Dependencies', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
   });
 
   test('should update when dependencies change', async ({ page }) => {
@@ -565,7 +565,7 @@ test.describe('Hook Dependencies', () => {
   test('should handle missing dependencies gracefully', async ({ page }) => {
     // Navigate with incomplete data
     await page.goto('/?from=invalid-station-id');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Should handle missing station data
     const hasError = await page.locator('text=/error.*station/i').count();
