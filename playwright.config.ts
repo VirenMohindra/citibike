@@ -64,14 +64,15 @@ export default defineConfig({
         // Use headless mode in CI for performance
         headless: true,
         // Enable WebGL for Mapbox GL JS in CI headless Chrome
-        // Local tests don't need these flags (they can use system GPU)
+        // Using modern Chrome flags (2025) for proper WebGL/Mapbox rendering
+        // Reference: https://www.createit.com/blog/headless-chrome-testing-webgl-using-playwright/
         ...(process.env.CI && {
           launchOptions: {
             args: [
-              '--use-gl=swiftshader', // Software-based GL for headless CI
-              '--enable-webgl',
-              '--enable-accelerated-2d-canvas',
-              '--disable-gpu', // Disable GPU hardware acceleration (use SwiftShader instead)
+              '--use-angle=gl', // Modern ANGLE GL backend for hardware-accelerated WebGL
+              '--no-sandbox', // Required for containerized CI environments
+              '--enable-webgl', // Enable WebGL support
+              '--enable-accelerated-2d-canvas', // Enable hardware-accelerated canvas
             ],
           },
         }),
@@ -89,8 +90,10 @@ export default defineConfig({
     stderr: 'pipe',
     // Pass environment variables to dev server
     env: {
-      // CI sets this via GitHub secrets, local uses .env.local
+      // CI sets these via GitHub secrets, local uses .env.local
       NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || '',
+      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
     },
   },
 });
