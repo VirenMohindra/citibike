@@ -420,8 +420,8 @@ test.describe('Settings Workflow', () => {
 
       // Step 4: Reload and verify persistence
       await page.reload();
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(1000);
 
       const persistedTheme = await page.evaluate(() => {
         const html = document.documentElement;
