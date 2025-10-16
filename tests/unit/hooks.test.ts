@@ -113,7 +113,10 @@ test.describe('useUrlState Hook', () => {
     // Navigate with URL parameters
     await page.goto('/?from=times-square&to=central-park');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(1000);
+
+    // Wait for station data to load (looking for station badges or non-empty inputs)
+    // The URL parsing happens after station data is fetched
+    await page.waitForTimeout(3000); // Increased timeout for station fetch + URL parse
 
     // Check if stations were loaded from URL
     const inputs = await page.locator('input').all();
