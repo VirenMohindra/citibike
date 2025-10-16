@@ -23,12 +23,16 @@ test.describe('Route Planning Workflow', () => {
 
     if ((await startInput.count()) > 0) {
       await startInput.fill('times');
-      await page.waitForTimeout(300);
+      await page
+        .locator('[role="option"]')
+        .first()
+        .waitFor({ state: 'visible', timeout: 2000 })
+        .catch(() => {});
 
       const firstOption = page.locator('[role="option"]').first();
       if ((await firstOption.count()) > 0) {
         await firstOption.click();
-        await page.waitForTimeout(200);
+        await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
         // Verify start station selected
         const startValue = await startInput.inputValue();
@@ -41,12 +45,16 @@ test.describe('Route Planning Workflow', () => {
 
         if ((await endInput.count()) > 0) {
           await endInput.fill('central');
-          await page.waitForTimeout(300);
+          await page
+            .locator('[role="option"]')
+            .first()
+            .waitFor({ state: 'visible', timeout: 2000 })
+            .catch(() => {});
 
           const endOption = page.locator('[role="option"]').first();
           if ((await endOption.count()) > 0) {
             await endOption.click();
-            await page.waitForTimeout(500);
+            await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
             // Verify end station selected
             const endValue = await endInput.inputValue();
@@ -77,22 +85,30 @@ test.describe('Route Planning Workflow', () => {
 
     if ((await startInput.count()) > 0) {
       await startInput.fill('times');
-      await page.waitForTimeout(300);
+      await page
+        .locator('[role="option"]')
+        .first()
+        .waitFor({ state: 'visible', timeout: 2000 })
+        .catch(() => {});
 
       const firstOption = page.locator('[role="option"]').first();
       if ((await firstOption.count()) > 0) {
         await firstOption.click();
-        await page.waitForTimeout(200);
+        await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
         const endInput = page.locator('input[placeholder*="end" i]').first();
         if ((await endInput.count()) > 0) {
           await endInput.fill('central');
-          await page.waitForTimeout(300);
+          await page
+            .locator('[role="option"]')
+            .first()
+            .waitFor({ state: 'visible', timeout: 2000 })
+            .catch(() => {});
 
           const endOption = page.locator('[role="option"]').first();
           if ((await endOption.count()) > 0) {
             await endOption.click();
-            await page.waitForTimeout(500);
+            await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
             // Step: Change route profile (Fastest/Safest/Balanced)
             const profileButton = page
@@ -102,7 +118,7 @@ test.describe('Route Planning Workflow', () => {
             if ((await profileButton.count()) > 0) {
               const initialProfile = await profileButton.textContent();
               await profileButton.click();
-              await page.waitForTimeout(300);
+              await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
               // Route should recalculate
               const afterProfile = await profileButton.textContent();
@@ -120,22 +136,30 @@ test.describe('Route Planning Workflow', () => {
 
     if ((await startInput.count()) > 0) {
       await startInput.fill('times');
-      await page.waitForTimeout(300);
+      await page
+        .locator('[role="option"]')
+        .first()
+        .waitFor({ state: 'visible', timeout: 2000 })
+        .catch(() => {});
 
       const firstOption = page.locator('[role="option"]').first();
       if ((await firstOption.count()) > 0) {
         await firstOption.click();
-        await page.waitForTimeout(200);
+        await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
         const endInput = page.locator('input[placeholder*="end" i]').first();
         if ((await endInput.count()) > 0) {
           await endInput.fill('central');
-          await page.waitForTimeout(300);
+          await page
+            .locator('[role="option"]')
+            .first()
+            .waitFor({ state: 'visible', timeout: 2000 })
+            .catch(() => {});
 
           const endOption = page.locator('[role="option"]').first();
           if ((await endOption.count()) > 0) {
             await endOption.click();
-            await page.waitForTimeout(200);
+            await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
             const startValue = await startInput.inputValue();
             const endValue = await endInput.inputValue();
@@ -145,7 +169,7 @@ test.describe('Route Planning Workflow', () => {
 
             if ((await swapButton.count()) > 0) {
               await swapButton.click();
-              await page.waitForTimeout(300);
+              await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
               // Verify stations swapped
               const newStartValue = await startInput.inputValue();
@@ -175,7 +199,7 @@ test.describe('Trip History Workflow', () => {
 
     if ((await tripsLink.count()) > 0) {
       await tripsLink.click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
       // Step 2: View trip list
       const tripList = page.locator('[role="list"], ul').filter({ hasText: /trip|ride/i });
@@ -188,7 +212,7 @@ test.describe('Trip History Workflow', () => {
           await tripItem.click().catch(() => {
             // Trip might not be clickable
           });
-          await page.waitForTimeout(300);
+          await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
           // Step 4: Trip details should be visible
           const hasDetails = await page.evaluate(() => {
@@ -208,21 +232,21 @@ test.describe('Trip History Workflow', () => {
 
     if ((await tripsLink.count()) > 0) {
       await tripsLink.click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
       // Step: Apply filter
       const filterButton = page.locator('button[aria-label*="filter" i]').first();
 
       if ((await filterButton.count()) > 0) {
         await filterButton.click();
-        await page.waitForTimeout(200);
+        await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
         // Select filter option
         const filterOption = page.locator('[role="option"]').first();
 
         if ((await filterOption.count()) > 0) {
           await filterOption.click();
-          await page.waitForTimeout(300);
+          await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
           // Trip list should update
           const tripList = page.locator('[role="list"]');
@@ -238,7 +262,7 @@ test.describe('Trip History Workflow', () => {
 
     if ((await tripsLink.count()) > 0) {
       await tripsLink.click();
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
       // Step: Click export button
       const exportButton = page
@@ -247,7 +271,7 @@ test.describe('Trip History Workflow', () => {
 
       if ((await exportButton.count()) > 0) {
         await exportButton.click();
-        await page.waitForTimeout(200);
+        await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
         // Export dialog or download should trigger
         const dialog = page.locator('[role="dialog"]');
@@ -272,7 +296,11 @@ test.describe('Station Discovery Workflow', () => {
     if ((await searchInput.count()) > 0) {
       // Step 2: Search for stations
       await searchInput.fill('broadway');
-      await page.waitForTimeout(300);
+      await page
+        .locator('[role="option"], [role="listitem"]')
+        .first()
+        .waitFor({ state: 'visible', timeout: 2000 })
+        .catch(() => {});
 
       // Step 3: Results should appear
       const results = page.locator('[role="option"], [role="listitem"]');
@@ -283,7 +311,7 @@ test.describe('Station Discovery Workflow', () => {
       if (resultCount > 0) {
         // Step 4: Select a station
         await results.first().click();
-        await page.waitForTimeout(300);
+        await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
         // Step 5: Station details should be visible
         const hasStationInfo = await page.evaluate(() => {
@@ -302,13 +330,17 @@ test.describe('Station Discovery Workflow', () => {
 
     if ((await searchInput.count()) > 0) {
       await searchInput.fill('times');
-      await page.waitForTimeout(300);
+      await page
+        .locator('[role="option"]')
+        .first()
+        .waitFor({ state: 'visible', timeout: 2000 })
+        .catch(() => {});
 
       const firstResult = page.locator('[role="option"]').first();
 
       if ((await firstResult.count()) > 0) {
         await firstResult.click();
-        await page.waitForTimeout(300);
+        await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
         // Step 2: Add to favorites
         const favoriteButton = page
@@ -318,7 +350,7 @@ test.describe('Station Discovery Workflow', () => {
         if ((await favoriteButton.count()) > 0) {
           const initialState = await favoriteButton.getAttribute('aria-pressed');
           await favoriteButton.click();
-          await page.waitForTimeout(200);
+          await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
           const newState = await favoriteButton.getAttribute('aria-pressed');
 
@@ -332,7 +364,7 @@ test.describe('Station Discovery Workflow', () => {
 
           if ((await favoritesLink.count()) > 0) {
             await favoritesLink.click();
-            await page.waitForTimeout(300);
+            await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
             // Favorites list should be visible
             const favoritesList = page.locator('[role="list"]');
@@ -349,13 +381,17 @@ test.describe('Station Discovery Workflow', () => {
 
     if ((await searchInput.count()) > 0) {
       await searchInput.fill('central park');
-      await page.waitForTimeout(300);
+      await page
+        .locator('[role="option"]')
+        .first()
+        .waitFor({ state: 'visible', timeout: 2000 })
+        .catch(() => {});
 
       const firstResult = page.locator('[role="option"]').first();
 
       if ((await firstResult.count()) > 0) {
         await firstResult.click();
-        await page.waitForTimeout(500);
+        await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
         // Step 2: Map should center on station
         // Verify map container is visible
@@ -403,7 +439,9 @@ test.describe('Settings Workflow', () => {
 
       // Step 2: Toggle theme
       await themeToggle.click();
-      await page.waitForTimeout(200);
+      await page
+        .waitForFunction(() => document.documentElement.className, { timeout: 500 })
+        .catch(() => {});
 
       const newTheme = await page.evaluate(() => {
         const html = document.documentElement;
@@ -421,7 +459,7 @@ test.describe('Settings Workflow', () => {
       // Step 4: Reload and verify persistence
       await page.reload();
       await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(1000);
+      await page.waitForLoadState('networkidle', { timeout: 2000 }).catch(() => {});
 
       const persistedTheme = await page.evaluate(() => {
         const html = document.documentElement;
@@ -448,7 +486,7 @@ test.describe('Settings Workflow', () => {
     if ((await unitToggle.count()) > 0) {
       // Step 2: Toggle units
       await unitToggle.click();
-      await page.waitForTimeout(200);
+      await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
       // Step 3: UI should update to show new units
       const bodyText = await page.locator('body').textContent();
@@ -461,12 +499,16 @@ test.describe('Settings Workflow', () => {
 
       if ((await startInput.count()) > 0) {
         await startInput.fill('times');
-        await page.waitForTimeout(300);
+        await page
+          .locator('[role="option"]')
+          .first()
+          .waitFor({ state: 'visible', timeout: 2000 })
+          .catch(() => {});
 
         const option = page.locator('[role="option"]').first();
         if ((await option.count()) > 0) {
           await option.click();
-          await page.waitForTimeout(200);
+          await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
           // Distance should be in selected units
           const hasDistance = await page.evaluate(() => {
@@ -492,14 +534,18 @@ test.describe('Settings Workflow', () => {
         // City switcher might not be available
       });
 
-      await page.waitForTimeout(300);
+      await page
+        .locator('[role="option"]')
+        .first()
+        .waitFor({ state: 'visible', timeout: 2000 })
+        .catch(() => {});
 
       // Step 3: City option should appear
       const cityOption = page.locator('[role="option"]').first();
 
       if ((await cityOption.count()) > 0) {
         await cityOption.click();
-        await page.waitForTimeout(500);
+        await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
         // Step 4: App should reload with new city
         // URL should reflect city change
@@ -530,22 +576,30 @@ test.describe('Share Workflow', () => {
 
     if ((await startInput.count()) > 0) {
       await startInput.fill('times');
-      await page.waitForTimeout(300);
+      await page
+        .locator('[role="option"]')
+        .first()
+        .waitFor({ state: 'visible', timeout: 2000 })
+        .catch(() => {});
 
       const firstOption = page.locator('[role="option"]').first();
       if ((await firstOption.count()) > 0) {
         await firstOption.click();
-        await page.waitForTimeout(200);
+        await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
         const endInput = page.locator('input[placeholder*="end" i]').first();
         if ((await endInput.count()) > 0) {
           await endInput.fill('central');
-          await page.waitForTimeout(300);
+          await page
+            .locator('[role="option"]')
+            .first()
+            .waitFor({ state: 'visible', timeout: 2000 })
+            .catch(() => {});
 
           const endOption = page.locator('[role="option"]').first();
           if ((await endOption.count()) > 0) {
             await endOption.click();
-            await page.waitForTimeout(500);
+            await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
             // Step 2: Share route
             const shareButton = page
@@ -554,7 +608,7 @@ test.describe('Share Workflow', () => {
 
             if ((await shareButton.count()) > 0) {
               await shareButton.click();
-              await page.waitForTimeout(200);
+              await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
               // Step 3: Get shareable URL
               const currentUrl = page.url();
@@ -564,7 +618,7 @@ test.describe('Share Workflow', () => {
               // Step 4: Simulate loading from shared link
               await page.goto(currentUrl);
               await page.waitForLoadState('domcontentloaded');
-              await page.waitForTimeout(500);
+              await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
               // Step 5: Verify route is loaded from URL
               const startValue = await startInput.inputValue();
@@ -587,12 +641,16 @@ test.describe('Share Workflow', () => {
 
     if ((await startInput.count()) > 0) {
       await startInput.fill('times');
-      await page.waitForTimeout(300);
+      await page
+        .locator('[role="option"]')
+        .first()
+        .waitFor({ state: 'visible', timeout: 2000 })
+        .catch(() => {});
 
       const option = page.locator('[role="option"]').first();
       if ((await option.count()) > 0) {
         await option.click();
-        await page.waitForTimeout(200);
+        await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
         // Step: Click share/copy button
         const copyButton = page
@@ -601,7 +659,7 @@ test.describe('Share Workflow', () => {
 
         if ((await copyButton.count()) > 0) {
           await copyButton.click();
-          await page.waitForTimeout(300);
+          await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
           // Verify clipboard contains URL
           const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
@@ -634,7 +692,7 @@ test.describe('Map Interaction Workflow', () => {
 
       if ((await zoomInButton.count()) > 0) {
         await zoomInButton.click();
-        await page.waitForTimeout(300);
+        await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
         // Step 3: Zoom out
         const zoomOutButton = page
@@ -643,7 +701,7 @@ test.describe('Map Interaction Workflow', () => {
 
         if ((await zoomOutButton.count()) > 0) {
           await zoomOutButton.click();
-          await page.waitForTimeout(300);
+          await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
           // Map should still be visible
           await expect(mapContainer).toBeVisible();
@@ -657,7 +715,7 @@ test.describe('Map Interaction Workflow', () => {
         await page.mouse.down();
         await page.mouse.move(box.x + box.width / 2 + 100, box.y + box.height / 2 + 100);
         await page.mouse.up();
-        await page.waitForTimeout(200);
+        await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
         // Map should still be responsive
         await expect(mapContainer).toBeVisible();
@@ -667,7 +725,7 @@ test.describe('Map Interaction Workflow', () => {
 
   test('click station marker on map workflow', async ({ page }) => {
     // Wait for map to load
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle', { timeout: 2000 }).catch(() => {});
 
     const mapContainer = page.locator('[id*="map"], canvas').first();
 
@@ -676,7 +734,7 @@ test.describe('Map Interaction Workflow', () => {
       const box = await mapContainer.boundingBox();
       if (box) {
         await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-        await page.waitForTimeout(300);
+        await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
         // Station info popup might appear
         const popup = page.locator('[role="dialog"], [class*="popup"]');
@@ -698,7 +756,9 @@ test.describe('Accessibility Workflow', () => {
   test('keyboard navigation workflow', async ({ page }) => {
     // Step 1: Tab to first interactive element
     await page.keyboard.press('Tab');
-    await page.waitForTimeout(100);
+    await page
+      .waitForFunction(() => document.activeElement?.tagName, { timeout: 500 })
+      .catch(() => {});
 
     const firstFocused = await page.evaluate(() => document.activeElement?.tagName);
     expect(firstFocused).toBeTruthy();
@@ -706,12 +766,12 @@ test.describe('Accessibility Workflow', () => {
     // Step 2: Continue tabbing through interactive elements
     for (let i = 0; i < 5; i++) {
       await page.keyboard.press('Tab');
-      await page.waitForTimeout(50);
+      await page.waitForFunction(() => document.activeElement, { timeout: 200 }).catch(() => {});
     }
 
     // Step 3: Press Enter on focused element
     await page.keyboard.press('Enter');
-    await page.waitForTimeout(300);
+    await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
     // App should respond to keyboard interaction
     const hasError = await page.locator('text=/critical|fatal/i').count();

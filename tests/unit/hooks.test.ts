@@ -74,12 +74,16 @@ test.describe('useUrlState Hook', () => {
 
     if ((await startInput.count()) > 0) {
       await startInput.fill('times');
-      await page.waitForTimeout(300);
+      await page
+        .locator('[role="option"]')
+        .first()
+        .waitFor({ state: 'visible', timeout: 2000 })
+        .catch(() => {});
 
       const option = page.locator('[role="option"]').first();
       if ((await option.count()) > 0) {
         await option.click();
-        await page.waitForTimeout(200);
+        await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
         // URL should contain station parameter
         const url = page.url();
@@ -95,12 +99,16 @@ test.describe('useUrlState Hook', () => {
 
     if ((await endInput.count()) > 0) {
       await endInput.fill('central');
-      await page.waitForTimeout(300);
+      await page
+        .locator('[role="option"]')
+        .first()
+        .waitFor({ state: 'visible', timeout: 2000 })
+        .catch(() => {});
 
       const option = page.locator('[role="option"]').first();
       if ((await option.count()) > 0) {
         await option.click();
-        await page.waitForTimeout(200);
+        await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
         // URL should contain destination parameter
         const url = page.url();
@@ -141,7 +149,7 @@ test.describe('useUrlState Hook', () => {
 
     if ((await shareButton.count()) > 0) {
       await shareButton.click();
-      await page.waitForTimeout(200);
+      await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
       // Should show share dialog or copy to clipboard
       const dialog = page.locator('[role="dialog"]');
@@ -181,7 +189,9 @@ test.describe('useTheme Hook', () => {
       const initialTheme = await page.locator('html').getAttribute('class');
 
       await themeToggle.click();
-      await page.waitForTimeout(100);
+      await page
+        .waitForFunction(() => document.documentElement.className, { timeout: 500 })
+        .catch(() => {});
 
       const newTheme = await page.locator('html').getAttribute('class');
 
@@ -196,7 +206,9 @@ test.describe('useTheme Hook', () => {
 
     if ((await themeToggle.count()) > 0) {
       await themeToggle.click();
-      await page.waitForTimeout(100);
+      await page
+        .waitForFunction(() => document.documentElement.className, { timeout: 500 })
+        .catch(() => {});
 
       const themeAfterToggle = await page.locator('html').getAttribute('class');
 
@@ -236,12 +248,16 @@ test.describe('Store Hooks (Zustand)', () => {
 
     if ((await stationInput.count()) > 0) {
       await stationInput.fill('times');
-      await page.waitForTimeout(300);
+      await page
+        .locator('[role="option"]')
+        .first()
+        .waitFor({ state: 'visible', timeout: 2000 })
+        .catch(() => {});
 
       const option = page.locator('[role="option"]').first();
       if ((await option.count()) > 0) {
         await option.click();
-        await page.waitForTimeout(200);
+        await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
         // Input should retain the selected value
         const value = await stationInput.inputValue();
@@ -255,12 +271,16 @@ test.describe('Store Hooks (Zustand)', () => {
 
     if ((await stationInput.count()) > 0) {
       await stationInput.fill('times');
-      await page.waitForTimeout(300);
+      await page
+        .locator('[role="option"]')
+        .first()
+        .waitFor({ state: 'visible', timeout: 2000 })
+        .catch(() => {});
 
       const option = page.locator('[role="option"]').first();
       if ((await option.count()) > 0) {
         await option.click();
-        await page.waitForTimeout(200);
+        await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
         // Look for clear button
         const clearButton = page
@@ -269,7 +289,7 @@ test.describe('Store Hooks (Zustand)', () => {
 
         if ((await clearButton.count()) > 0) {
           await clearButton.click();
-          await page.waitForTimeout(100);
+          await page.waitForLoadState('networkidle', { timeout: 500 }).catch(() => {});
 
           const value = await stationInput.inputValue();
           expect(value).toBe('');
@@ -291,7 +311,7 @@ test.describe('Store Hooks (Zustand)', () => {
 
       if (isDisabled === null) {
         await profileButton.click({ timeout: 5000 });
-        await page.waitForTimeout(100);
+        await page.waitForLoadState('networkidle', { timeout: 500 }).catch(() => {});
 
         // Button state might change (selected/unselected)
         const afterText = await profileButton.textContent();
@@ -312,7 +332,7 @@ test.describe('Store Hooks (Zustand)', () => {
     if ((await favoriteButton.count()) > 0) {
       const initialState = await favoriteButton.getAttribute('aria-pressed');
       await favoriteButton.click();
-      await page.waitForTimeout(200);
+      await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
       const newState = await favoriteButton.getAttribute('aria-pressed');
 
@@ -328,7 +348,11 @@ test.describe('Store Hooks (Zustand)', () => {
 
     if ((await unitToggle.count()) > 0) {
       await unitToggle.click();
-      await page.waitForTimeout(300);
+      await page
+        .locator('[role="option"]')
+        .first()
+        .waitFor({ state: 'visible', timeout: 2000 })
+        .catch(() => {});
 
       // Check that distances update (look for mi/km)
       const bodyText = await page.locator('body').textContent();
@@ -354,7 +378,7 @@ test.describe('useTokenRefresh Hook', () => {
       consoleMessages.push(msg.text());
     });
 
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle', { timeout: 2000 }).catch(() => {});
 
     // Should either check token or skip if not authenticated
     const hasTokenCheck = consoleMessages.some(
@@ -399,7 +423,7 @@ test.describe('useTokenRefresh Hook', () => {
       }
     });
 
-    await page.waitForTimeout(1000);
+    await page.waitForLoadState('networkidle', { timeout: 2000 }).catch(() => {});
 
     // Should see "already in progress" message if concurrent attempts blocked
     const hasConcurrencyCheck = consoleMessages.some(
@@ -428,7 +452,7 @@ test.describe('useTokenRefresh Hook', () => {
       document.cookie = `citibike_token_expires_at=${expiresAt}; path=/`;
     });
 
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
 
     // App should still be functional despite refresh error
     const hasError = page.locator('text=/critical error/i');
@@ -458,7 +482,7 @@ test.describe('Hook Lifecycle', () => {
       errors.push(error.message);
     });
 
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
     // No errors about cleanup or memory leaks
     const hasCleanupError = errors.some(
@@ -479,7 +503,7 @@ test.describe('Hook Lifecycle', () => {
       await input.fill('abcd');
       await input.fill('abcde');
 
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
       // Should handle rapid updates without crashing
       const finalValue = await input.inputValue();
@@ -498,7 +522,7 @@ test.describe('Hook Lifecycle', () => {
       });
     });
 
-    await page.waitForTimeout(500);
+    await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
     // App should remain stable (might have validation errors but not crashes)
     const hasCriticalError = await page.locator('text=/critical|fatal|crash/i').count();
@@ -520,7 +544,7 @@ test.describe('Hook Dependencies', () => {
       await citySwitcher.click();
 
       // Hooks should re-run with new city context
-      await page.waitForTimeout(500);
+      await page.waitForLoadState('networkidle', { timeout: 1500 }).catch(() => {});
 
       const url = page.url();
       expect(url).toBeTruthy();
@@ -545,7 +569,7 @@ test.describe('Hook Dependencies', () => {
       await enabledButton.click({ timeout: 5000 }).catch(() => {
         // Button might not be clickable
       });
-      await page.waitForTimeout(200);
+      await page.waitForLoadState('networkidle', { timeout: 1000 }).catch(() => {});
 
       // Should not cause excessive re-renders
       expect(renderCount).toBeLessThan(100);
