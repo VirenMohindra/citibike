@@ -10,6 +10,7 @@ import TripStats from '../trips/TripStats';
 import { useAppStore } from '@/lib/store';
 import { useI18n } from '@/lib/i18n';
 import { API_ROUTES } from '@/config/routes';
+import { exitDemoMode } from '@/lib/demo/exit';
 
 interface UserProfileProps {
   isOpen: boolean;
@@ -19,7 +20,7 @@ interface UserProfileProps {
 export default function UserProfile({ isOpen, onClose }: UserProfileProps) {
   const { t } = useI18n();
   const router = useRouter();
-  const { citibikeUser, setCitibikeUser, setSyncState } = useAppStore();
+  const { citibikeUser, setCitibikeUser, setSyncState, isDemoMode } = useAppStore();
   const [activeTab, setActiveTab] = useState<'stats' | 'angel' | 'history'>('stats');
 
   const handleLogout = async () => {
@@ -31,11 +32,29 @@ export default function UserProfile({ isOpen, onClose }: UserProfileProps) {
         syncStatus: 'idle',
         totalTrips: 0,
       });
+
+      // DEMO MODE: Don't auto-reload demo after logout
+      // Set a flag to prevent DemoInitializer from auto-loading
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('citibike-logged-out', 'true');
+      }
+
       onClose();
-      // Redirect to root page
+      // Redirect to root page (user can manually choose demo)
       router.push('/');
     } catch (err) {
       console.error('Logout error:', err);
+    }
+  };
+
+  const handleExitDemo = async () => {
+    try {
+      await exitDemoMode();
+      onClose();
+      // Redirect to homepage (will show login options)
+      router.push('/');
+    } catch (err) {
+      console.error('Exit demo error:', err);
     }
   };
 
@@ -64,14 +83,25 @@ export default function UserProfile({ isOpen, onClose }: UserProfileProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-              title={t('userProfile.logout')}
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('userProfile.logout')}</span>
-            </button>
+            {isDemoMode ? (
+              <button
+                onClick={handleExitDemo}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm text-amber-700 dark:text-amber-500 hover:text-amber-900 dark:hover:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors font-medium"
+                title={t('userProfile.exitDemo')}
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">{t('userProfile.exitDemo')}</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                title={t('userProfile.logout')}
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">{t('userProfile.logout')}</span>
+              </button>
+            )}
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1"

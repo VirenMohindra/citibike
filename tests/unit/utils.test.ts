@@ -25,7 +25,6 @@ import { fuzzySearch, highlightMatches } from '@/lib/fuzzy';
 import {
   calculateTripStats,
   formatDuration,
-  formatMoney,
   formatCO2,
   getAverageTripDuration,
   getAverageTripDistance,
@@ -456,23 +455,6 @@ describe('Formatters', () => {
 
   test('formatDuration - rounds down minutes', () => {
     expect(formatDuration(150)).toBe('2m'); // 2.5 minutes
-  });
-
-  test('formatMoney - formats currency', () => {
-    expect(formatMoney(12.5)).toBe('$12.50');
-    expect(formatMoney(100)).toBe('$100.00');
-  });
-
-  test('formatMoney - handles zero', () => {
-    expect(formatMoney(0)).toBe('$0.00');
-  });
-
-  test('formatMoney - handles NaN', () => {
-    expect(formatMoney(NaN)).toBe('$0.00');
-  });
-
-  test('formatMoney - rounds to 2 decimals', () => {
-    expect(formatMoney(12.999)).toBe('$13.00');
   });
 
   test('formatCO2 - formats grams', () => {

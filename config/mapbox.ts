@@ -78,7 +78,9 @@ export const COMMON_MAP_OPTIONS: Partial<mapboxgl.MapboxOptions> = {
 
   // Headless Chrome / CI compatibility (required for Playwright E2E tests)
   // See: https://github.com/mapbox/mapbox-gl-js/issues/7721
-  preserveDrawingBuffer: true, // Required for map rendering in headless Chrome
+  // IMPORTANT: Disabled by default - causes 20-40% performance degradation
+  // Only enable when running E2E tests via NEXT_PUBLIC_E2E_TEST=true env var
+  preserveDrawingBuffer: process.env.NEXT_PUBLIC_E2E_TEST === 'true',
 
   // Interaction settings
   dragRotate: false, // Disable rotation for simpler bike navigation

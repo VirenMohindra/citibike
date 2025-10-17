@@ -8,7 +8,6 @@ import {
   calculateTripStats,
   formatCO2,
   formatDuration,
-  formatMoney,
   getTripsPerMonthAverage,
   getLongestTrip,
 } from '@/lib/stats';
@@ -19,7 +18,7 @@ import { backupTripsToCloud, restoreTripsFromCloud, getCloudTripCount } from '@/
 import type { User } from '@supabase/supabase-js';
 
 export default function TripStats() {
-  const { t, formatDistance } = useI18n();
+  const { t, formatDistance, formatCurrency } = useI18n();
   const { addToast } = useToast();
   const { citibikeUser, distanceUnit } = useAppStore();
   const [stats, setStats] = useState<TripStatsType | null>(null);
@@ -506,7 +505,7 @@ export default function TripStats() {
                 {/* Money Saved */}
                 <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4">
                   <div className="text-2xl font-bold text-amber-900 dark:text-amber-100">
-                    {formatMoney(stats.moneySaved)}
+                    {formatCurrency(stats.moneySaved)}
                   </div>
                   <div className="text-sm text-amber-700 dark:text-amber-300 font-medium">
                     {t('tripStats.moneySaved')}

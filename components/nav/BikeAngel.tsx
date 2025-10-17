@@ -61,6 +61,14 @@ export default function BikeAngel() {
         return;
       }
 
+      // DEMO MODE: Don't fetch from API, rely on pre-filled cache
+      const { isDemoMode } = useAppStore.getState();
+      if (isDemoMode) {
+        console.log('Demo mode: Skipping Bike Angel API call');
+        setLoading(false);
+        return;
+      }
+
       // Fetch fresh data
       console.log('Fetching fresh Bike Angel data');
       const response = await fetch('/api/citibike/bike-angel');

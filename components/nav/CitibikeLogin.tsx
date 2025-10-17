@@ -1,15 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/lib/store';
 import { useI18n } from '@/lib/i18n';
 import { useToast } from '@/lib/toast-context';
 import { API_ROUTES } from '@/config/routes';
-import { db, createSyncManager } from '@/lib/db';
+import { createSyncManager, db } from '@/lib/db';
 import { useTokenRefresh } from '@/hooks/useTokenRefresh';
 import UserProfile from './UserProfile';
+import { setupDemoMode } from '@/lib/demo/loader';
 
 type LoginStep = 'phone' | 'otp' | 'email_challenge' | 'complete';
 
@@ -21,7 +22,13 @@ export default function CitibikeLogin({ compact = false }: CitibikeLoginProps) {
   const { t } = useI18n();
   const router = useRouter();
   const { addToast } = useToast();
-  const { citibikeUser, setCitibikeUser, setSyncState } = useAppStore();
+  const {
+    citibikeUser,
+    setCitibikeUser,
+    setSyncState,
+    loginModalShouldOpen,
+    setLoginModalShouldOpen,
+  } = useAppStore();
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<LoginStep>('phone');
 
@@ -88,6 +95,16 @@ export default function CitibikeLogin({ compact = false }: CitibikeLoginProps) {
 
     checkAuth();
   }, [citibikeUser, setCitibikeUser]);
+
+  // Auto-open login modal when exiting demo mode
+  useEffect(() => {
+    if (loginModalShouldOpen) {
+      // Clear the flag
+      setLoginModalShouldOpen(false);
+      // Open the modal
+      setIsOpen(true);
+    }
+  }, [loginModalShouldOpen, setLoginModalShouldOpen]);
 
   // Load actual trip count from IndexedDB
   useEffect(() => {
@@ -625,18 +642,58 @@ export default function CitibikeLogin({ compact = false }: CitibikeLoginProps) {
                 </div>
               </div>
 
-              {/* Alternative Option */}
+              {/* Alternative Options */}
               {step === 'phone' && (
-                <div className="mt-4 text-center">
+                <div className="mt-4 space-y-2">
+                  {/* DEMO MODE: Try demo account button */}
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-200"></div>
+                    </div>
+                    <div className="relative flex justify-center text-xs">
+                      <span className="px-2 bg-white text-gray-500">{t('demo.loginModal.or')}</span>
+                    </div>
+                  </div>
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       setIsOpen(false);
-                      addToast(t('auth.messages.manualUploadComingSoon'), 'info');
+                      addToast(t('demo.toast.loading'), 'info');
+
+                      // DEMO MODE: Clear logout flag (user manually chose demo)
+                      if (typeof window !== 'undefined') {
+                        sessionStorage.removeItem('citibike-logged-out');
+                      }
+
+                      // Import demo setup dynamically to avoid circular deps
+                      const demoUser = await setupDemoMode();
+                      if (demoUser) {
+                        setCitibikeUser(demoUser);
+                        useAppStore.getState().enterDemoMode('daily_commuter', demoUser);
+                        addToast(t('demo.toast.success'), 'success');
+                      } else {
+                        addToast(t('demo.toast.failed'), 'error');
+                      }
                     }}
-                    className="text-sm text-[#0066CC] hover:underline"
+                    className="w-full bg-gray-100 text-gray-700 rounded-lg py-3 px-4 font-medium hover:bg-gray-200 transition-colors text-sm"
                   >
-                    {t('auth.buttons.manualUpload')}
+                    {t('demo.loginModal.tryDemoAccount')}
                   </button>
+                  <p className="text-xs text-gray-600 text-center">
+                    {t('demo.loginModal.tryDemoAccountDescription')}
+                  </p>
+
+                  {/* Manual upload option */}
+                  <div className="text-center pt-2">
+                    <button
+                      onClick={() => {
+                        setIsOpen(false);
+                        addToast(t('auth.messages.manualUploadComingSoon'), 'info');
+                      }}
+                      className="text-sm text-[#0066CC] hover:underline"
+                    >
+                      {t('auth.buttons.manualUpload')}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

@@ -142,10 +142,29 @@ export async function restoreTripsFromCloud(userId: string): Promise<number> {
     detailsFetchedAt: trip.has_actual_coordinates ? Date.now() : undefined,
   }));
 
-  // Bulk upsert to IndexedDB
-  await db.trips.bulkPut(tripsToRestore);
+  // Bulk upsert to IndexedDB with quota error handling
+  try {
+    await db.trips.bulkPut(tripsToRestore);
+    return tripsToRestore.length;
+  } catch (error) {
+    // DEMO MODE: Handle IndexedDB quota exceeded error
+    if (error instanceof Error && error.name === 'QuotaExceededError') {
+      console.warn('⚠️ IndexedDB quota exceeded, loading recent trips only');
 
-  return tripsToRestore.length;
+      // Load only the most recent 100 trips
+      const recentTrips = tripsToRestore.sort((a, b) => b.startTime - a.startTime).slice(0, 100);
+
+      await db.trips.bulkPut(recentTrips);
+
+      // Show warning to user (will be caught by caller)
+      throw new Error(
+        `Storage quota exceeded. Loaded ${recentTrips.length} recent trips instead of ${tripsToRestore.length}.`
+      );
+    }
+
+    // Re-throw other errors
+    throw error;
+  }
 }
 
 /**

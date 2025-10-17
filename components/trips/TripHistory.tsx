@@ -20,7 +20,6 @@ import { useAppStore } from '@/lib/store';
 import {
   calculateTripStats,
   formatDuration,
-  formatMoney,
   formatCO2,
   getAverageTripDuration,
   getAverageTripDistance,
@@ -31,7 +30,7 @@ import { useI18n } from '@/lib/i18n';
 type TimeFilter = 'all' | 'week' | 'month' | 'year';
 
 export default function TripHistory() {
-  const { t, formatDistance } = useI18n();
+  const { t, formatDistance, formatCurrency } = useI18n();
   const { citibikeUser } = useAppStore();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [stats, setStats] = useState<TripStats | null>(null);
@@ -245,7 +244,7 @@ export default function TripHistory() {
                   </span>
                 </div>
                 <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {formatMoney(stats.moneySaved)}
+                  {formatCurrency(stats.moneySaved)}
                 </div>
               </div>
 

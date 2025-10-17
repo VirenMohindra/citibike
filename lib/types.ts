@@ -404,6 +404,11 @@ export interface AppState {
   bikeAngelCache: BikeAngelCache;
   distanceUnit: 'miles' | 'km';
   showBikeAngelRewards: boolean;
+  // DEMO MODE: Demo mode state
+  isDemoMode: boolean; // True when user is in demo mode
+  demoPersona: string | null; // Persona ID (e.g., "daily_commuter")
+  demoBannerDismissed: boolean; // True when demo banner is dismissed
+  loginModalShouldOpen: boolean; // True when login modal should open (triggered by demo exit)
   setCurrentCity: (cityId: string) => void;
   setStartStation: (station: StationWithStatus | null) => void;
   setEndStation: (station: StationWithStatus | null) => void;
@@ -429,4 +434,9 @@ export interface AppState {
   setBikeAngelCache: (cache: Partial<BikeAngelCache>) => void;
   setDistanceUnit: (unit: 'miles' | 'km') => void;
   setShowBikeAngelRewards: (show: boolean) => void;
+  // DEMO MODE: Actions
+  enterDemoMode: (persona: string, user: CitibikeUser) => void;
+  exitDemoMode: () => void;
+  setDemoBannerDismissed: (dismissed: boolean) => void;
+  setLoginModalShouldOpen: (shouldOpen: boolean) => void;
 }
