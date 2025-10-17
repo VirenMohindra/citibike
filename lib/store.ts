@@ -190,6 +190,10 @@ export const useAppStore = create<AppState>()(
           citibikeUser: user,
           demoBannerDismissed: false, // Reset banner when entering demo mode
         });
+        // Set localStorage flag for analytics filtering
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('isDemoMode', 'true');
+        }
       },
 
       exitDemoMode: () => {
@@ -205,6 +209,11 @@ export const useAppStore = create<AppState>()(
             totalTrips: 0,
           },
         });
+        // Clear localStorage demo flag and set logout flag to prevent auto-load
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('isDemoMode');
+          sessionStorage.setItem('citibike-logged-out', 'true');
+        }
       },
 
       setDemoBannerDismissed: (dismissed) => set({ demoBannerDismissed: dismissed }),
