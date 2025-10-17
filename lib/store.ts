@@ -32,6 +32,11 @@ export const useAppStore = create<AppState>()(
       },
       distanceUnit: 'miles',
       showBikeAngelRewards: true, // Default to showing rewards
+      // DEMO MODE: Initial state
+      isDemoMode: false,
+      demoPersona: null,
+      demoBannerDismissed: false,
+      loginModalShouldOpen: false,
 
       setCurrentCity: (cityId) => {
         const state = get();
@@ -176,6 +181,43 @@ export const useAppStore = create<AppState>()(
 
       setDistanceUnit: (unit) => set({ distanceUnit: unit }),
       setShowBikeAngelRewards: (show) => set({ showBikeAngelRewards: show }),
+
+      // DEMO MODE: Actions
+      enterDemoMode: (persona, user) => {
+        set({
+          isDemoMode: true,
+          demoPersona: persona,
+          citibikeUser: user,
+          demoBannerDismissed: false, // Reset banner when entering demo mode
+        });
+        // Set localStorage flag for analytics filtering
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('isDemoMode', 'true');
+        }
+      },
+
+      exitDemoMode: () => {
+        set({
+          isDemoMode: false,
+          demoPersona: null,
+          citibikeUser: null,
+          demoBannerDismissed: false,
+          loginModalShouldOpen: true, // Signal to open login modal
+          syncState: {
+            lastSyncTimestamp: null,
+            syncStatus: 'idle',
+            totalTrips: 0,
+          },
+        });
+        // Clear localStorage demo flag and set logout flag to prevent auto-load
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('isDemoMode');
+          sessionStorage.setItem('citibike-logged-out', 'true');
+        }
+      },
+
+      setDemoBannerDismissed: (dismissed) => set({ demoBannerDismissed: dismissed }),
+      setLoginModalShouldOpen: (shouldOpen) => set({ loginModalShouldOpen: shouldOpen }),
     }),
     {
       name: 'citibike-storage',
@@ -187,6 +229,9 @@ export const useAppStore = create<AppState>()(
         citibikeUser: state.citibikeUser, // Safe to persist - sensitive token is in httpOnly cookie
         distanceUnit: state.distanceUnit,
         showBikeAngelRewards: state.showBikeAngelRewards,
+        // DEMO MODE: Persist demo state (so demo persists across browser refreshes until login)
+        isDemoMode: state.isDemoMode,
+        demoPersona: state.demoPersona,
       }),
     }
   )

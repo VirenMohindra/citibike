@@ -21,12 +21,19 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 function HomeContent() {
   const { t } = useI18n();
-  const { startStation, endStation, currentCity } = useAppStore();
+  const { startStation, endStation, currentCity, isDemoMode, demoBannerDismissed } = useAppStore();
   const [mounted, setMounted] = useState(false);
   const [mobileRouteOpen, setMobileRouteOpen] = useState(false);
   const [showShareToast, setShowShareToast] = useState(false);
   const [routeProfile, setRouteProfile] = useState<RouteProfile>('fastest');
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
+
+  // Calculate positioning offset based on whether banner is shown
+  // Banner height is ~56px when visible
+  const showBanner = isDemoMode && !demoBannerDismissed;
+  const topOffset = showBanner ? 'top-32' : 'top-20'; // 128px vs 80px (NavBar is 64px) - for panels
+  const fixedTopOffset = showBanner ? 'top-32' : 'top-24'; // 128px vs 96px - for fixed UI elements
+  const maxHeightOffset = showBanner ? 'max-h-[calc(100vh-144px)]' : 'max-h-[calc(100vh-96px)]';
 
   // Build API URLs with city parameter
   const stationInfoUrl = buildApiRoute(API_ROUTES.STATIONS.INFO, { city: currentCity });
@@ -115,7 +122,9 @@ function HomeContent() {
 
       {/* Mobile Selected Station Badges */}
       {(startStation || endStation) && !mobilePanelOpen && (
-        <div className="sm:hidden fixed top-24 left-4 z-20 max-w-[calc(100%-6rem)] space-y-2">
+        <div
+          className={`sm:hidden fixed ${fixedTopOffset} left-4 z-20 max-w-[calc(100%-6rem)] space-y-2`}
+        >
           {startStation && (
             <div
               onClick={() => setMobilePanelOpen(true)}
@@ -164,7 +173,9 @@ function HomeContent() {
       </button>
 
       {/* Station Selector Panel - Desktop */}
-      <div className="hidden sm:block absolute top-20 left-4 z-10 w-96 bg-white dark:bg-gray-900 rounded-lg shadow-lg max-h-[calc(100vh-120px)] flex flex-col overflow-y-auto">
+      <div
+        className={`hidden sm:block absolute ${topOffset} left-4 z-10 w-96 bg-white dark:bg-gray-900 rounded-lg shadow-lg ${maxHeightOffset} flex flex-col overflow-y-auto`}
+      >
         <StationSelector stations={stations} isLoading={isLoading} />
         <WaypointManager stations={stations} />
         <RouteProfileSelector onProfileChange={setRouteProfile} />
@@ -222,7 +233,9 @@ function HomeContent() {
 
       {/* Route Panel - Desktop */}
       {startStation && endStation && (
-        <div className="hidden sm:block absolute top-20 right-4 z-10 w-80 bg-white dark:bg-gray-900 rounded-lg shadow-lg max-h-[calc(100vh-120px)] flex flex-col overflow-hidden">
+        <div
+          className={`hidden sm:block absolute ${topOffset} right-4 z-10 w-80 bg-white dark:bg-gray-900 rounded-lg shadow-lg ${maxHeightOffset} flex flex-col overflow-hidden`}
+        >
           <div className="flex-1 overflow-y-auto">
             <RoutePanel />
           </div>
@@ -243,7 +256,7 @@ function HomeContent() {
       {startStation && endStation && (
         <button
           onClick={() => setMobileRouteOpen(true)}
-          className="sm:hidden fixed top-24 right-4 z-20 px-4 py-2 bg-green-600 text-white rounded-lg shadow-lg flex items-center gap-2 hover:bg-green-700 transition-colors"
+          className={`sm:hidden fixed ${fixedTopOffset} right-4 z-20 px-4 py-2 bg-green-600 text-white rounded-lg shadow-lg flex items-center gap-2 hover:bg-green-700 transition-colors`}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -312,7 +325,9 @@ function HomeContent() {
 
       {/* Instructions */}
       {!startStation && !isLoading && (
-        <div className="absolute top-24 left-1/2 transform -translate-x-1/2 z-10 bg-white dark:bg-gray-800 px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-full shadow-lg max-w-[90%] sm:max-w-none">
+        <div
+          className={`absolute ${fixedTopOffset} left-1/2 transform -translate-x-1/2 z-10 bg-white dark:bg-gray-800 px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-full shadow-lg max-w-[90%] sm:max-w-none`}
+        >
           <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 text-center">
             {t('page.clickToStart')}
           </p>
@@ -321,7 +336,9 @@ function HomeContent() {
 
       {/* Share Toast */}
       {showShareToast && (
-        <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 bg-green-600 text-white rounded-lg shadow-lg flex items-center gap-2 animate-fade-in">
+        <div
+          className={`fixed ${fixedTopOffset} left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 bg-green-600 text-white rounded-lg shadow-lg flex items-center gap-2 animate-fade-in`}
+        >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"

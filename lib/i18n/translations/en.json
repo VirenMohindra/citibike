@@ -509,7 +509,33 @@
     "bikeAngel": "Bike Angel",
     "tripHistory": "Trip History",
     "yourProfile": "Your Profile",
-    "member": "Member"
+    "member": "Member",
+    "exitDemo": "Exit Demo"
+  },
+  "demo": {
+    "banner": {
+      "modeLabel": "Demo Mode:",
+      "modeLabelShort": "Demo:",
+      "description": "Exploring sample data. See your actual stats when you log in",
+      "loginButton": "Visualize My Data"
+    },
+    "featureLockedModal": {
+      "requiresAccount": "requires a real account",
+      "loginNow": "Visualize My Data",
+      "continueExploring": "Continue exploring demo",
+      "demoModeLabel": "Demo mode:",
+      "demoModeDescription": "You can view trips, stats, and analysis, but some features require logging into Citibike."
+    },
+    "loginModal": {
+      "or": "OR",
+      "tryDemoAccount": "Try a demo account",
+      "tryDemoAccountDescription": "See what your Citibike data could look like"
+    },
+    "toast": {
+      "loading": "Loading demo account...",
+      "success": "Demo account loaded! Explore the app.",
+      "failed": "Failed to load demo account"
+    }
   },
   "waypoints": {
     "title": "Route Stops",
@@ -673,6 +699,10 @@
     "minutesAgo": "{{count}}m ago",
     "hoursAgo": "{{count}}h ago",
     "daysAgo": "{{count}}d ago"
+  },
+  "currency": {
+    "symbol": "$",
+    "format": "{{symbol}}{{amount}}"
   },
   "tripReplay": {
     "play": "Play",

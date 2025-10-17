@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import type { Trip } from '@/lib/db/schema';
-import { formatDuration, formatMoney } from '@/lib/stats';
+import { formatDuration } from '@/lib/stats';
 import { useI18n } from '@/lib/i18n';
 import { useAppStore } from '@/lib/store';
 import { useTripComparison } from '@/lib/db/hooks';
@@ -13,7 +13,7 @@ interface TripDetailsPanelProps {
 }
 
 export default function TripDetailsPanel({ trip }: TripDetailsPanelProps) {
-  const { t, formatDistance } = useI18n();
+  const { t, formatDistance, formatCurrency } = useI18n();
   const distanceUnit = useAppStore((state) => state.distanceUnit);
   const citibikeUser = useAppStore((state) => state.citibikeUser);
   const tripComparison = useTripComparison(citibikeUser?.id || null);
@@ -177,7 +177,7 @@ export default function TripDetailsPanel({ trip }: TripDetailsPanelProps) {
                 {t('tripDetailsPanel.amountPaid')}
               </span>
               <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {formatMoney(trip.cost / 100)}
+                {formatCurrency(trip.cost / 100)}
               </span>
             </div>
           </div>

@@ -3,8 +3,10 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import { I18nProvider } from '@/lib/i18n';
 import { ThemeProvider } from '@/lib/theme-context';
 import { ToastProvider } from '@/lib/toast-context';
-import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import AnalyticsWrapper from '@/components/analytics/AnalyticsWrapper';
+import DemoInitializerWrapper from '@/components/demo/DemoInitializerWrapper';
+import DemoBanner from '@/components/demo/DemoBanner';
 import React from 'react';
 import './globals.css';
 
@@ -83,10 +85,14 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <I18nProvider>
-            <ToastProvider>{children}</ToastProvider>
+            <ToastProvider>
+              <DemoInitializerWrapper />
+              <DemoBanner />
+              {children}
+            </ToastProvider>
           </I18nProvider>
         </ThemeProvider>
-        <Analytics />
+        <AnalyticsWrapper />
         <SpeedInsights />
       </body>
     </html>

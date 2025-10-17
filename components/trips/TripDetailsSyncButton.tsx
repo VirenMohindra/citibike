@@ -16,7 +16,7 @@ interface SyncProgress {
 
 export default function TripDetailsSyncButton() {
   const { t } = useI18n();
-  const { citibikeUser } = useAppStore();
+  const { citibikeUser, isDemoMode } = useAppStore();
   const [isSyncing, setIsSyncing] = useState(false);
   const [progress, setProgress] = useState<SyncProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -108,6 +108,11 @@ export default function TripDetailsSyncButton() {
       setIsSyncing(false);
     }
   };
+
+  // Don't show sync button in demo mode
+  if (isDemoMode) {
+    return null;
+  }
 
   if (!tripStats || tripStats.total === 0) {
     return null;

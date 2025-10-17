@@ -13,6 +13,8 @@ export interface Database {
           id: string; // uuid
           email: string | null;
           citibike_user_id: string | null;
+          is_demo_user: boolean; // DEMO MODE: identifies demo accounts
+          demo_persona: string | null; // DEMO MODE: persona type (e.g., "daily_commuter")
           created_at: string; // timestamp
           updated_at: string | null; // timestamp
         };
@@ -20,6 +22,8 @@ export interface Database {
           id: string;
           email?: string | null;
           citibike_user_id?: string | null;
+          is_demo_user?: boolean;
+          demo_persona?: string | null;
           created_at?: string;
           updated_at?: string | null;
         };
@@ -27,6 +31,8 @@ export interface Database {
           id?: string;
           email?: string | null;
           citibike_user_id?: string | null;
+          is_demo_user?: boolean;
+          demo_persona?: string | null;
           created_at?: string;
           updated_at?: string | null;
         };

@@ -167,14 +167,6 @@ export function formatDuration(seconds: number): string {
   return `${minutes}m`;
 }
 
-// Format money
-export function formatMoney(amount: number): string {
-  if (typeof amount !== 'number' || isNaN(amount)) {
-    return '$0.00';
-  }
-  return `$${amount.toFixed(2)}`;
-}
-
 // Format CO2
 export function formatCO2(grams: number): string {
   if (typeof grams !== 'number' || isNaN(grams)) {
