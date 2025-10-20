@@ -124,37 +124,12 @@ export function isAuthenticatedSession(xSession: string): boolean {
 // Identifier Management
 // ============================================
 
-export interface DeviceIdentifier {
-  type: string;
-  source: string;
-  name: string;
-}
-
-/**
- * Create device identifiers for authentication
- */
-export function createDeviceIdentifiers(): DeviceIdentifier[] {
-  return [
-    {
-      type: 'icloud',
-      source: 'icloud',
-      name: `web-${Math.random().toString(36).substring(2, 15)}`,
-    },
-  ];
-}
-
-/**
- * Encode device identifiers for API request
- */
-export function encodeIdentifiers(identifiers: DeviceIdentifier[] = []): string {
-  return Buffer.from(JSON.stringify(identifiers)).toString('base64');
-}
-
 /**
  * Create empty identifiers (for email challenge)
+ * Web flow doesn't require device identifiers
  */
 export function createEmptyIdentifiers(): string {
-  return encodeIdentifiers([]);
+  return Buffer.from(JSON.stringify([])).toString('base64');
 }
 
 // ============================================
@@ -204,10 +179,12 @@ export const SESSION_COOKIES = {
   TEMP_SESSION: 'citibike_temp_session',
   TEMP_CLIENT_SESSION: 'citibike_temp_client_session',
   TEMP_PHONE: 'citibike_temp_phone',
+  TEMP_OAUTH_COOKIE: 'citibike_temp_oauth_cookie', // OAuth lyftAccessToken cookie for session continuity
 
   // Authenticated session
   ACCESS_TOKEN: 'citibike_access_token',
   REFRESH_TOKEN: 'citibike_refresh_token',
+  TOKEN_EXPIRES_AT: 'citibike_token_expires_at',
   USER_ID: 'citibike_user_id',
 } as const;
 
@@ -263,7 +240,7 @@ export function setAuthCookies(
   response.cookies.set(SESSION_COOKIES.REFRESH_TOKEN, tokens.refreshToken, refreshTokenOptions);
 
   // Set expiry time (NOT httpOnly so client can read it for proactive refresh)
-  response.cookies.set('citibike_token_expires_at', tokens.expiresAt.toString(), {
+  response.cookies.set(SESSION_COOKIES.TOKEN_EXPIRES_AT, tokens.expiresAt.toString(), {
     ...accessTokenOptions,
     httpOnly: false,
   });

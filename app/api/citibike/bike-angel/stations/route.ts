@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getLyftClient } from '@/lib/api/lyft-client';
 import type { MapItemsResponse, StationReward } from '@/lib/types';
+import { SESSION_CONSTANTS, CITY_CONSTANTS } from '@/config/constants';
 
 /**
  * GET /api/citibike/bike-angel/stations
@@ -14,9 +15,11 @@ import type { MapItemsResponse, StationReward } from '@/lib/types';
  */
 export async function GET(request: NextRequest) {
   try {
-    // Get auth token from cookies
+    // Get auth token and selected city from cookies
     const cookieStore = await cookies();
-    const accessToken = cookieStore.get('citibike_access_token')?.value;
+    const accessToken = cookieStore.get(SESSION_CONSTANTS.ACCESS_TOKEN_COOKIE)?.value;
+    const cityId =
+      cookieStore.get(CITY_CONSTANTS.COOKIE_NAME)?.value || CITY_CONSTANTS.DEFAULT_CITY_ID;
 
     if (!accessToken) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
@@ -42,13 +45,17 @@ export async function GET(request: NextRequest) {
 
     const radiusKm = radius ? parseFloat(radius) : 0.5;
 
-    // Fetch stations with rewards from Lyft API
-    const lyftClient = getLyftClient();
+    // Fetch stations with rewards from Lyft API using city-specific client
+    const lyftClient = getLyftClient(cityId);
+
     const mapItemsData = (await lyftClient.getStationsWithRewards(
       accessToken,
       location,
       radiusKm
     )) as unknown as MapItemsResponse;
+
+    // Get city config to use region-specific parsing
+    const cityConfig = lyftClient['cityConfig']; // Access city config from client
 
     // Parse and simplify the response
     // Group by station ID to detect multiple reward badges (pickup vs dropoff)
@@ -56,18 +63,17 @@ export async function GET(request: NextRequest) {
 
     if (mapItemsData.map_items) {
       for (const item of mapItemsData.map_items) {
-        // Extract station ID from device.id (format: "motivate_BKN_<uuid>")
+        // Extract station ID from device.id (format: "motivate_<REGION>_<uuid>")
+        // Region code varies by city: BKN (NYC), DC (DC), CHI (Chicago), etc.
         const deviceId = item.device.id;
-        const stationId = deviceId.replace('motivate_BKN_', '');
+        const regionPrefix = `motivate_${cityConfig.auth.regionCode}_`;
+        const stationId = deviceId.replace(regionPrefix, '');
 
+        const pin = item.collapsible_collection_bubble?.selected_detailed_text_specific_pin;
         // Check if station has reward badge
-        const rewardBadge =
-          item.collapsible_collection_bubble?.selected_detailed_text_specific_pin?.reward_badge;
-
+        const rewardBadge = pin?.reward_badge;
         // Extract bike and dock counts from text_specific_items
-        const textItems =
-          item.collapsible_collection_bubble?.selected_detailed_text_specific_pin
-            ?.text_specific_items || [];
+        const textItems = pin?.text_specific_items || [];
 
         // First item is bikes (icon 338), second is docks (icon 156)
         const numBikes = textItems[0] ? parseInt(textItems[0].text) : 0;
@@ -102,9 +108,6 @@ export async function GET(request: NextRequest) {
             stationReward.dropoffPoints = pointValue;
           } else {
             // Unknown icon type - treat as general reward (both directions)
-            console.log(
-              `⚠️  Station ${stationId}: Unknown icon type ${iconType}, points=${pointValue}`
-            );
             if (!stationReward.pickupPoints && !stationReward.dropoffPoints) {
               stationReward.pickupPoints = pointValue;
               stationReward.dropoffPoints = pointValue;
@@ -124,19 +127,6 @@ export async function GET(request: NextRequest) {
     const stationRewards: StationReward[] = Array.from(
       stationRewardsMap.values()
     ) as StationReward[];
-
-    // Log summary of directional rewards
-    const directionalRewards = stationRewards.filter(
-      (r) => r.pickupPoints !== undefined || r.dropoffPoints !== undefined
-    );
-    const bothDirections = stationRewards.filter(
-      (r) => r.pickupPoints !== undefined && r.dropoffPoints !== undefined
-    );
-
-    console.log(`✅ Found ${stationRewards.length} stations with Bike Angel rewards`);
-    console.log(
-      `   📊 ${directionalRewards.length} with directional data, ${bothDirections.length} with both directions`
-    );
 
     return NextResponse.json({
       success: true,

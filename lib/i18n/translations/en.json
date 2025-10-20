@@ -207,7 +207,7 @@
       "resend": "Resend code",
       "resendIn": "Resend in {{seconds}}s",
       "changeNumber": "Change phone number",
-      "codeSentFrom": "Code sent from +1 (833) 504-2560",
+      "codeSentFrom": "Code sent.",
       "expiresIn": "Expires in {{minutes}} minutes",
       "didntReceive": "Didn't receive code? Resend",
       "error": {
@@ -385,7 +385,7 @@
   },
   "api": {
     "messages": {
-      "otpSent": "Verification code sent! Check your phone for a text from +1 (833) 504-2560.",
+      "otpSent": "Verification code sent! Check your phone for a text.",
       "otpVerified": "Successfully verified!",
       "challengeRequired": "Email verification required for security.",
       "loggedOut": "You have been logged out.",

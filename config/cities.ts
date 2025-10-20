@@ -50,6 +50,14 @@ export interface CityConfig {
     ebikes: boolean;
   };
 
+  /** Authentication configuration */
+  auth: {
+    /** Brand identifier for OAuth flow (e.g., 'citi-bike', 'divvy') */
+    brandId: string;
+    /** Region code for API calls (e.g., 'BKN', 'CHI', 'DC') */
+    regionCode: string;
+  };
+
   /** Branding configuration */
   branding?: {
     primaryColor?: string;
@@ -87,6 +95,10 @@ export const CITIES: Record<string, CityConfig> = {
       bikeAngel: true,
       ebikes: true,
     },
+    auth: {
+      brandId: 'citi-bike',
+      regionCode: 'BKN',
+    },
     branding: {
       primaryColor: '#0076BE',
     },
@@ -113,6 +125,10 @@ export const CITIES: Record<string, CityConfig> = {
       authentication: true,
       bikeAngel: false, // Not confirmed for DC yet
       ebikes: true,
+    },
+    auth: {
+      brandId: 'capital-bikeshare',
+      regionCode: 'DC', // Confirmed from GBFS rental_uris: dc.lft.to
     },
     branding: {
       primaryColor: '#D32F2F',
@@ -141,6 +157,10 @@ export const CITIES: Record<string, CityConfig> = {
       bikeAngel: false,
       ebikes: true,
     },
+    auth: {
+      brandId: 'baywheels',
+      regionCode: 'SFO', // Confirmed from GBFS rental_uris: sfo.lft.to
+    },
     branding: {
       primaryColor: '#00A9E0',
     },
@@ -166,6 +186,10 @@ export const CITIES: Record<string, CityConfig> = {
       authentication: true,
       bikeAngel: false,
       ebikes: true,
+    },
+    auth: {
+      brandId: 'divvy',
+      regionCode: 'CHI',
     },
     branding: {
       primaryColor: '#0080FF',
@@ -193,6 +217,10 @@ export const CITIES: Record<string, CityConfig> = {
       bikeAngel: false,
       ebikes: true,
     },
+    auth: {
+      brandId: 'blue-bikes',
+      regionCode: 'BOS', // Confirmed from GBFS rental_uris: bos.lft.to
+    },
     branding: {
       primaryColor: '#2E5CA5',
     },
@@ -219,10 +247,76 @@ export const CITIES: Record<string, CityConfig> = {
       bikeAngel: false,
       ebikes: true,
     },
+    auth: {
+      brandId: 'biketown',
+      regionCode: 'PDX', // Confirmed from GBFS rental_uris: pdx.lft.to
+    },
     branding: {
       primaryColor: '#FF6B00',
     },
     websiteUrl: 'https://www.biketownpdx.com',
+  },
+
+  mexicocity: {
+    id: 'mexicocity',
+    systemId: 'lyft_ecobici',
+    name: 'Mexico City',
+    systemName: 'Ecobici',
+    gbfsBaseUrl: 'https://gbfs.mex.lyftbikes.com',
+    gbfsVersion: 'gbfs/en',
+    mapCenter: {
+      lat: 19.432608,
+      lon: -99.133209,
+    },
+    defaultZoom: 13,
+    maxBounds: [-99.37, 19.05, -98.95, 19.59], // Mexico City metro area
+    timezone: 'America/Mexico_City',
+    operator: 'Lyft',
+    features: {
+      authentication: true,
+      bikeAngel: false,
+      ebikes: true,
+    },
+    auth: {
+      brandId: 'ecobici',
+      regionCode: 'MEX', // From GBFS URL: gbfs.mex.lyftbikes.com
+    },
+    branding: {
+      primaryColor: '#E30613',
+    },
+    websiteUrl: 'https://ecobici.cdmx.gob.mx',
+    supportEmail: 'contacto@ecobici.cdmx.gob.mx',
+  },
+
+  montreal: {
+    id: 'montreal',
+    systemId: 'lyft_bixi',
+    name: 'Montreal',
+    systemName: 'BIXI',
+    gbfsBaseUrl: 'https://gbfs.velobixi.com',
+    gbfsVersion: 'gbfs/en',
+    mapCenter: {
+      lat: 45.508888,
+      lon: -73.561668,
+    },
+    defaultZoom: 13,
+    maxBounds: [-73.98, 45.41, -73.47, 45.7], // Greater Montreal area
+    timezone: 'America/Toronto',
+    operator: 'Lyft',
+    features: {
+      authentication: true,
+      bikeAngel: false,
+      ebikes: true,
+    },
+    auth: {
+      brandId: 'bixi',
+      regionCode: 'MTL', // Montreal region code
+    },
+    branding: {
+      primaryColor: '#009FDA',
+    },
+    websiteUrl: 'https://www.bixi.com',
+    supportEmail: 'info@bixi.com',
   },
 } as const;
 

@@ -210,12 +210,14 @@ export interface CitibikeAuthResponse {
 // OTP Authentication Types
 export interface OTPRequestBody {
   phoneNumber: string;
+  cityId?: string; // Optional city context for multi-city support
   deviceId?: string;
 }
 
 export interface OTPVerifyBody {
   phoneNumber?: string; // Optional, phone is stored in cookie from request step
   code: string;
+  cityId?: string; // Optional city context for multi-city support
   sessionId?: string; // Optional session ID
   deviceId?: string;
 }

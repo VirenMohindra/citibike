@@ -8,7 +8,7 @@ import { cookies } from 'next/headers';
 import { getLyftClient } from '@/lib/api/lyft-client';
 import { ApiError } from '@/lib/api/client';
 import { getSessionCookieOptions, SESSION_COOKIES } from '@/lib/api/session';
-import { VALIDATION_PATTERNS, AUTH_CONSTANTS, ErrorCode } from '@/config/constants';
+import { AUTH_CONSTANTS, ErrorCode, VALIDATION_PATTERNS } from '@/config/constants';
 import type { OTPRequestBody, OTPRequestResponse } from '@/lib/types';
 
 /**
@@ -38,7 +38,8 @@ export async function POST(request: NextRequest) {
   try {
     // Parse request body
     const body: OTPRequestBody = await request.json();
-    let { phoneNumber } = body;
+    const { cityId } = body;
+    let phoneNumber = body.phoneNumber;
 
     // Validate input
     if (!phoneNumber) {
@@ -65,8 +66,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get API client
-    const lyftClient = getLyftClient();
+    // Get API client with city context
+    const lyftClient = getLyftClient(cityId);
 
     // Check if credentials are configured
     if (!lyftClient.hasCredentials()) {
@@ -93,6 +94,8 @@ export async function POST(request: NextRequest) {
       otpResponse.sessionInfo.clientSessionId,
       cookieOptions
     );
+    // Store OAuth cookie for session continuity between requestOtp and verifyOtp
+    cookieStore.set(SESSION_COOKIES.TEMP_OAUTH_COOKIE, otpResponse.oauthCookie, cookieOptions);
 
     // Return success response
     const response: OTPRequestResponse = {

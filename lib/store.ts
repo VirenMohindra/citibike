@@ -1,12 +1,22 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { AppState, StationWithStatus } from './types';
-import { DEFAULT_CITY_ID } from '@/config/cities';
+import { CITY_CONSTANTS } from '@/config/constants';
 
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
-      currentCity: DEFAULT_CITY_ID, // Default to NYC for backward compatibility
+      currentCity: (() => {
+        // Initialize city from cookie on server/client
+        if (typeof document !== 'undefined') {
+          const cookieCity = document.cookie
+            .split('; ')
+            .find((row) => row.startsWith(`${CITY_CONSTANTS.COOKIE_NAME}=`))
+            ?.split('=')[1];
+          return cookieCity || CITY_CONSTANTS.DEFAULT_CITY_ID;
+        }
+        return CITY_CONSTANTS.DEFAULT_CITY_ID;
+      })(), // Default to NYC for backward compatibility
       startStation: null,
       endStation: null,
       waypoints: [],
@@ -49,6 +59,11 @@ export const useAppStore = create<AppState>()(
             waypoints: [],
             route: null,
           });
+
+          // Also set cookie so server-side API routes can access it
+          if (typeof document !== 'undefined') {
+            document.cookie = `${CITY_CONSTANTS.COOKIE_NAME}=${cityId}; path=/; max-age=${CITY_CONSTANTS.COOKIE_MAX_AGE}; samesite=strict`;
+          }
         }
       },
 
