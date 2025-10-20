@@ -387,6 +387,14 @@ export interface BikeAngelCache {
   error: string | null;
 }
 
+export interface SocialState {
+  followingIds: string[]; // IDs of users the current user is following
+  followerCount: number; // Number of followers
+  followingCount: number; // Number of users following
+  unreadActivityCount: number; // Number of unread activity items
+  lastActivityCheck: number | null; // Timestamp of last activity feed check
+}
+
 export interface AppState {
   currentCity: string; // City ID (e.g., 'nyc', 'dc')
   startStation: StationWithStatus | null;
@@ -411,6 +419,8 @@ export interface AppState {
   demoPersona: string | null; // Persona ID (e.g., "daily_commuter")
   demoBannerDismissed: boolean; // True when demo banner is dismissed
   loginModalShouldOpen: boolean; // True when login modal should open (triggered by demo exit)
+  // SOCIAL: Social state (Strava-like)
+  socialState: SocialState;
   setCurrentCity: (cityId: string) => void;
   setStartStation: (station: StationWithStatus | null) => void;
   setEndStation: (station: StationWithStatus | null) => void;
@@ -441,4 +451,9 @@ export interface AppState {
   exitDemoMode: () => void;
   setDemoBannerDismissed: (dismissed: boolean) => void;
   setLoginModalShouldOpen: (shouldOpen: boolean) => void;
+  // SOCIAL: Actions
+  setSocialState: (state: Partial<SocialState>) => void;
+  updateFollowingIds: (followingIds: string[]) => void;
+  incrementActivityCount: () => void;
+  resetActivityCount: () => void;
 }

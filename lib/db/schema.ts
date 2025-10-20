@@ -27,6 +27,14 @@ export interface UserProfile {
   userPhoto?: string;
   referralCode?: string;
   lastSynced: number; // timestamp
+
+  // Social Profile Fields (Strava-like)
+  bio?: string; // user bio/description
+  location?: string; // user location
+  followerCount?: number; // number of followers
+  followingCount?: number; // number of users following
+  totalKudos?: number; // total kudos received across all trips
+  isPublicProfile?: boolean; // whether profile is public (default: true)
 }
 
 /**
@@ -107,6 +115,13 @@ export interface Trip {
   recommendedMode?: 'citibike_classic' | 'citibike_ebike' | 'subway'; // optimal mode for this trip
   normalized?: boolean; // true if trip data has been normalized and analyzed
   normalizedAt?: number; // timestamp when normalization occurred
+
+  // Social & Sharing Fields
+  isPublic?: boolean; // true if trip is shared publicly (default: true)
+  kudosCount?: number; // number of kudos/likes received
+  downvoteCount?: number; // number of downvotes received
+  commentCount?: number; // number of comments on this trip
+  sharedAt?: number; // timestamp when trip was shared to activity feed
 }
 
 /**
@@ -155,6 +170,63 @@ export interface PublicTrip {
   importedAt?: number; // timestamp when imported
 }
 
+/**
+ * Follow Store
+ * Stores user-to-user follow relationships (like Strava)
+ */
+export interface Follow {
+  id: string; // primary key (composite: follower_id-following_id)
+  followerId: string; // user doing the following
+  followingId: string; // user being followed
+  createdAt: number; // timestamp when follow occurred
+}
+
+/**
+ * Like Store
+ * Stores kudos/downvotes on trips (like Strava kudos)
+ */
+export interface Like {
+  id: string; // primary key (composite: userId-tripId)
+  userId: string; // user who liked/downvoted
+  tripId: string; // trip being liked
+  tripOwnerId: string; // owner of the trip (for querying)
+  type: 'kudos' | 'downvote'; // kudos or downvote
+  createdAt: number; // timestamp when like occurred
+}
+
+/**
+ * Comment Store
+ * Stores comments on trips
+ */
+export interface Comment {
+  id: string; // primary key (uuid)
+  tripId: string; // trip being commented on
+  tripOwnerId: string; // owner of the trip
+  userId: string; // user who commented
+  userName: string; // cached user name for display
+  userPhoto?: string; // cached user photo
+  text: string; // comment text
+  createdAt: number; // timestamp when comment was created
+  updatedAt?: number; // timestamp when comment was last edited
+}
+
+/**
+ * Activity Feed Store
+ * Stores aggregated activity feed items for quick access
+ */
+export interface ActivityFeedItem {
+  id: string; // primary key (uuid)
+  userId: string; // user this activity belongs to (for feed filtering)
+  actorId: string; // user who performed the action
+  actorName: string; // cached actor name
+  actorPhoto?: string; // cached actor photo
+  actionType: 'trip' | 'kudos' | 'comment' | 'achievement' | 'follow'; // type of activity
+  tripId?: string; // trip ID if action involves a trip
+  tripData?: Record<string, unknown>; // cached trip summary data
+  text?: string; // additional text (e.g., comment text, achievement name)
+  createdAt: number; // timestamp of the activity
+}
+
 // ============================================
 // Database Class
 // ============================================
@@ -167,6 +239,10 @@ export class CitibikeDB extends Dexie {
   trips!: EntityTable<Trip, 'id'>;
   syncMetadata!: EntityTable<SyncMetadata, 'key'>;
   publicTrips!: EntityTable<PublicTrip, 'rideId'>;
+  follows!: EntityTable<Follow, 'id'>;
+  likes!: EntityTable<Like, 'id'>;
+  comments!: EntityTable<Comment, 'id'>;
+  activityFeed!: EntityTable<ActivityFeedItem, 'id'>;
 
   constructor() {
     super('citibike-local-db');
@@ -339,6 +415,82 @@ export class CitibikeDB extends Dexie {
         [endLat+endLon]
       `,
     });
+
+    // Version 7: Add social features (follows, likes, comments, activity feed)
+    this.version(7).stores({
+      trips: `
+        id,
+        userId,
+        [userId+startTime],
+        [userId+endTime],
+        [userId+bikeType],
+        [userId+startStationId],
+        [userId+endStationId],
+        [userId+hasActualCoordinates],
+        [userId+detailsFetched],
+        [userId+detailsFetchError],
+        [userId+normalized],
+        [userId+distanceCategory],
+        [userId+durationCategory],
+        [userId+timeOfDay],
+        [userId+isPublic],
+        startTime,
+        endTime,
+        startStationId,
+        endStationId,
+        bikeType,
+        hasActualCoordinates,
+        detailsFetched,
+        detailsFetchError,
+        normalized,
+        distanceCategory,
+        durationCategory,
+        timeOfDay,
+        suitabilityScore,
+        isPublic,
+        sharedAt,
+        kudosCount,
+        [startLat+startLon],
+        [endLat+endLon]
+      `,
+      follows: `
+        id,
+        followerId,
+        followingId,
+        [followerId+followingId],
+        createdAt
+      `,
+      likes: `
+        id,
+        userId,
+        tripId,
+        tripOwnerId,
+        [userId+tripId],
+        [tripId+type],
+        [tripOwnerId+createdAt],
+        type,
+        createdAt
+      `,
+      comments: `
+        id,
+        tripId,
+        tripOwnerId,
+        userId,
+        [tripId+createdAt],
+        [userId+createdAt],
+        createdAt
+      `,
+      activityFeed: `
+        id,
+        userId,
+        actorId,
+        actionType,
+        tripId,
+        [userId+createdAt],
+        [actorId+createdAt],
+        createdAt
+      `,
+    });
   }
 
   /**
@@ -351,6 +503,13 @@ export class CitibikeDB extends Dexie {
       await this.subscriptions.delete(userId);
       await this.trips.where({ userId }).delete();
       await this.syncMetadata.where({ userId }).delete();
+      // Clear social data
+      await this.follows.where({ followerId: userId }).delete();
+      await this.follows.where({ followingId: userId }).delete();
+      await this.likes.where({ userId }).delete();
+      await this.comments.where({ userId }).delete();
+      await this.activityFeed.where({ userId }).delete();
+      await this.activityFeed.where({ actorId: userId }).delete();
     });
   }
 

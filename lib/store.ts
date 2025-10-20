@@ -47,6 +47,14 @@ export const useAppStore = create<AppState>()(
       demoPersona: null,
       demoBannerDismissed: false,
       loginModalShouldOpen: false,
+      // SOCIAL: Initial state
+      socialState: {
+        followingIds: [],
+        followerCount: 0,
+        followingCount: 0,
+        unreadActivityCount: 0,
+        lastActivityCheck: null,
+      },
 
       setCurrentCity: (cityId) => {
         const state = get();
@@ -233,6 +241,41 @@ export const useAppStore = create<AppState>()(
 
       setDemoBannerDismissed: (dismissed) => set({ demoBannerDismissed: dismissed }),
       setLoginModalShouldOpen: (shouldOpen) => set({ loginModalShouldOpen: shouldOpen }),
+
+      // SOCIAL: Actions
+      setSocialState: (newState) =>
+        set((state) => ({
+          socialState: {
+            ...state.socialState,
+            ...newState,
+          },
+        })),
+
+      updateFollowingIds: (followingIds) =>
+        set((state) => ({
+          socialState: {
+            ...state.socialState,
+            followingIds,
+            followingCount: followingIds.length,
+          },
+        })),
+
+      incrementActivityCount: () =>
+        set((state) => ({
+          socialState: {
+            ...state.socialState,
+            unreadActivityCount: state.socialState.unreadActivityCount + 1,
+          },
+        })),
+
+      resetActivityCount: () =>
+        set((state) => ({
+          socialState: {
+            ...state.socialState,
+            unreadActivityCount: 0,
+            lastActivityCheck: Date.now(),
+          },
+        })),
     }),
     {
       name: 'citibike-storage',
@@ -247,6 +290,8 @@ export const useAppStore = create<AppState>()(
         // DEMO MODE: Persist demo state (so demo persists across browser refreshes until login)
         isDemoMode: state.isDemoMode,
         demoPersona: state.demoPersona,
+        // SOCIAL: Persist social state
+        socialState: state.socialState,
       }),
     }
   )

@@ -277,3 +277,146 @@ export function getMostFrequentRoute(trips: Trip[]): {
     count: sortedRoutes[0].count,
   };
 }
+
+// ============================================
+// Enhanced Statistics (Strava-like)
+// ============================================
+
+/**
+ * Calculate minutes per mile for a trip
+ * Returns pace in minutes per mile
+ */
+export function calculateMinutesPerMile(durationSeconds: number, distanceMeters: number): number {
+  if (!distanceMeters || distanceMeters === 0) return 0;
+
+  const durationMinutes = durationSeconds / 60;
+  const distanceMiles = distanceMeters / 1609.34;
+
+  return durationMinutes / distanceMiles;
+}
+
+/**
+ * Get average minutes per mile across all trips
+ */
+export function getAverageMinutesPerMile(trips: Trip[]): number {
+  const tripsWithDistance = trips.filter((trip) => trip.distance && trip.distance > 0);
+
+  if (tripsWithDistance.length === 0) return 0;
+
+  const totalPace = tripsWithDistance.reduce((sum, trip) => {
+    return sum + calculateMinutesPerMile(trip.duration, trip.distance!);
+  }, 0);
+
+  return totalPace / tripsWithDistance.length;
+}
+
+/**
+ * Get trip with longest distance
+ */
+export function getLongestDistanceTrip(trips: Trip[]): Trip | null {
+  if (trips.length === 0) return null;
+
+  const tripsWithDistance = trips.filter((trip) => trip.distance && trip.distance > 0);
+
+  if (tripsWithDistance.length === 0) return null;
+
+  return tripsWithDistance.reduce((longest, trip) => {
+    return trip.distance! > (longest.distance || 0) ? trip : longest;
+  }, tripsWithDistance[0]);
+}
+
+/**
+ * Get trip with longest duration
+ */
+export function getLongestDurationTrip(trips: Trip[]): Trip | null {
+  if (trips.length === 0) return null;
+
+  return trips.reduce((longest, trip) => {
+    return trip.duration > longest.duration ? trip : longest;
+  }, trips[0]);
+}
+
+/**
+ * Get most expensive trip (based on cost field)
+ */
+export function getMostExpensiveTrip(trips: Trip[]): Trip | null {
+  if (trips.length === 0) return null;
+
+  const tripsWithCost = trips.filter((trip) => trip.cost && trip.cost > 0);
+
+  if (tripsWithCost.length === 0) return null;
+
+  return tripsWithCost.reduce((mostExpensive, trip) => {
+    return trip.cost! > (mostExpensive.cost || 0) ? trip : mostExpensive;
+  }, tripsWithCost[0]);
+}
+
+/**
+ * Format pace (minutes per mile) as "X:XX /mi"
+ */
+export function formatPace(minutesPerMile: number): string {
+  if (!minutesPerMile || isNaN(minutesPerMile) || minutesPerMile === 0) {
+    return '--';
+  }
+
+  const minutes = Math.floor(minutesPerMile);
+  const seconds = Math.round((minutesPerMile - minutes) * 60);
+
+  return `${minutes}:${seconds.toString().padStart(2, '0')} /mi`;
+}
+
+/**
+ * Format cost in cents to dollars
+ */
+export function formatCost(cents: number): string {
+  if (!cents || isNaN(cents)) return '$0.00';
+
+  const dollars = cents / 100;
+  return `$${dollars.toFixed(2)}`;
+}
+
+/**
+ * Calculate enhanced trip statistics for leaderboards and sharing
+ */
+export interface EnhancedTripStats extends TripStats {
+  // Enhanced stats
+  averageMinutesPerMile: number;
+  longestDistanceTrip: Trip | null;
+  longestDurationTrip: Trip | null;
+  mostExpensiveTrip: Trip | null;
+
+  // Formatted values for display
+  formatted: {
+    averagePace: string;
+    longestDistance: string;
+    longestDuration: string;
+    mostExpensiveCost: string;
+  };
+}
+
+/**
+ * Calculate enhanced statistics with all Strava-like metrics
+ */
+export function calculateEnhancedStats(trips: Trip[]): EnhancedTripStats {
+  const basicStats = calculateTripStats(trips);
+  const averageMinutesPerMile = getAverageMinutesPerMile(trips);
+  const longestDistanceTrip = getLongestDistanceTrip(trips);
+  const longestDurationTrip = getLongestDurationTrip(trips);
+  const mostExpensiveTrip = getMostExpensiveTrip(trips);
+
+  return {
+    ...basicStats,
+    averageMinutesPerMile,
+    longestDistanceTrip,
+    longestDurationTrip,
+    mostExpensiveTrip,
+    formatted: {
+      averagePace: formatPace(averageMinutesPerMile),
+      longestDistance: longestDistanceTrip
+        ? `${(longestDistanceTrip.distance! / 1609.34).toFixed(2)} mi`
+        : '--',
+      longestDuration: longestDurationTrip ? formatDuration(longestDurationTrip.duration) : '--',
+      mostExpensiveCost: mostExpensiveTrip ? formatCost(mostExpensiveTrip.cost!) : '--',
+    },
+  };
+}
