@@ -149,7 +149,8 @@ test.describe('Demo Mode User Journey', () => {
 
     // Click login button should navigate or open modal
     await loginButton.click();
-    await expect(page.locator('text=Enter Phone Number')).toBeVisible({ timeout: 3000 });
+    // Modal title includes system name (e.g., "Citibike Enter Phone Number")
+    await expect(page.locator('text=/.*Enter Phone Number/')).toBeVisible({ timeout: 5000 });
   });
 
   test('allows manual demo selection from login modal', async ({ page, context }) => {
@@ -225,8 +226,8 @@ test.describe('Demo Mode User Journey', () => {
     // Click login from banner to show modal
     await page.locator('button:has-text("Visualize My Data")').first().click();
 
-    // Should show login modal with demo option
-    await expect(page.locator('text=Enter Phone Number')).toBeVisible({ timeout: 5000 });
+    // Should show login modal with demo option (modal title includes system name)
+    await expect(page.locator('text=/.*Enter Phone Number/')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('button:has-text("Try a demo account")')).toBeVisible();
   });
 
