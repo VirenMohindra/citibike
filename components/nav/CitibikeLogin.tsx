@@ -9,6 +9,7 @@ import { useToast } from '@/lib/toast-context';
 import { API_ROUTES } from '@/config/routes';
 import { createSyncManager, db } from '@/lib/db';
 import { useTokenRefresh } from '@/hooks/useTokenRefresh';
+import { useCity } from '@/lib/hooks/useCity';
 import UserProfile from './UserProfile';
 import { setupDemoMode } from '@/lib/demo/loader';
 
@@ -22,6 +23,7 @@ export default function CitibikeLogin({ compact = false }: CitibikeLoginProps) {
   const { t } = useI18n();
   const router = useRouter();
   const { addToast } = useToast();
+  const { cityId, systemName } = useCity();
   const {
     citibikeUser,
     setCitibikeUser,
@@ -138,7 +140,7 @@ export default function CitibikeLogin({ compact = false }: CitibikeLoginProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ phoneNumber }),
+        body: JSON.stringify({ phoneNumber, cityId }),
       });
 
       const data = await response.json();
@@ -181,6 +183,7 @@ export default function CitibikeLogin({ compact = false }: CitibikeLoginProps) {
           phoneNumber,
           code: otpCode,
           sessionId,
+          cityId,
         }),
       });
 
@@ -247,6 +250,7 @@ export default function CitibikeLogin({ compact = false }: CitibikeLoginProps) {
           phoneNumber,
           code: otpCode,
           email: emailInput,
+          cityId,
         }),
       });
 
@@ -479,7 +483,9 @@ export default function CitibikeLogin({ compact = false }: CitibikeLoginProps) {
                     </button>
                   )}
                   <h2 className="text-xl font-bold text-gray-900">
-                    {step === 'phone' ? t('auth.phone.title') : t('auth.otp.title')}
+                    {step === 'phone'
+                      ? `${systemName} ${t('auth.phone.title')}`
+                      : t('auth.otp.title')}
                   </h2>
                 </div>
                 <button

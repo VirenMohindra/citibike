@@ -6,14 +6,9 @@
 import { ApiError, BaseApiClient } from './client';
 import { API_CONFIG, createBasicAuth, createLyftHeaders, LYFT_ENDPOINTS } from '@/config/api';
 import { getCitibikeCredentials } from '@/config/environment';
-import { ErrorCode, MAP_CONSTANTS } from '@/config/constants';
-import {
-  createDeviceIdentifiers,
-  createEmptyIdentifiers,
-  createSession,
-  encodeIdentifiers,
-  type SessionInfo,
-} from './session';
+import { ErrorCode } from '@/config/constants';
+import { type CityConfig, DEFAULT_CITY_ID, getCityConfig } from '@/config/cities';
+import { createSession, type SessionInfo } from './session';
 import type { CitibikeAuthResponse, CitibikeUser, OTPRequestResponse } from '@/lib/types';
 import type {
   LyftApiResponse,
@@ -29,9 +24,14 @@ export class LyftApiClient extends BaseApiClient {
   private credentials: { clientId: string; clientSecret: string } | null;
   private sessionInfo = createSession();
   private appAccessToken: string | null = null;
+  private lyftAccessTokenCookie: string | null = null; // Cache OAuth cookie for session continuity
+  private cityId: string;
+  private cityConfig: CityConfig;
 
-  constructor() {
+  constructor(cityId?: string) {
     super(API_CONFIG.LYFT.BASE_URL);
+    this.cityId = cityId || DEFAULT_CITY_ID;
+    this.cityConfig = getCityConfig(this.cityId);
     this.credentials = getCitibikeCredentials();
   }
 
@@ -122,125 +122,272 @@ export class LyftApiClient extends BaseApiClient {
 
   /**
    * Exchange phone and OTP for user access token
+   * Uses phone grant type for direct Lyft API access
+   * IMPORTANT: Requires OAuth cookie from requestOtp to maintain session
    */
   async verifyOtp(
     phoneNumber: string,
     code: string,
-    sessionId?: string
+    codeVerifier?: string,
+    oauthCookie?: string
   ): Promise<CitibikeAuthResponse> {
     const credentials = this.requireCredentials();
     const basicAuth = createBasicAuth(credentials.clientId, credentials.clientSecret);
-    const identifiers = createDeviceIdentifiers();
 
     const headers = createLyftHeaders({
       clientSessionId: this.sessionInfo.clientSessionId,
       xSession: this.sessionInfo.xSession,
     });
 
-    const params = new URLSearchParams({
-      grant_type: 'urn:lyft:oauth2:grant_type:phone',
-      phone_number: phoneNumber,
-      phone_code: code,
-      identifiers: encodeIdentifiers(identifiers),
-    });
+    // Use OAuth cookie from requestOtp to maintain session
+    if (oauthCookie) {
+      headers['cookie'] = `lyftAccessToken=${oauthCookie}`;
+    } else if (this.lyftAccessTokenCookie) {
+      // Fallback to cached cookie (for same-request flow)
+      headers['cookie'] = `lyftAccessToken=${this.lyftAccessTokenCookie}`;
+    } else {
+      // Fallback: get a new token if cache is empty
+      const oauthResponse = await fetch(`${this.baseUrl}${LYFT_ENDPOINTS.OAUTH.TOKEN}`, {
+        method: 'POST',
+        headers: {
+          authorization: basicAuth,
+          'content-type': 'application/x-www-form-urlencoded',
+        },
+        body: 'grant_type=client_credentials',
+      });
 
-    if (sessionId) {
-      params.append('session_id', sessionId);
+      const setCookieHeader = oauthResponse.headers.get('set-cookie');
+      const lyftAccessToken = setCookieHeader?.match(/lyftAccessToken=([^;]+)/)?.[1];
+      if (lyftAccessToken) {
+        headers['cookie'] = `lyftAccessToken=${lyftAccessToken}`;
+      }
     }
 
-    const response = await this.post<LyftApiResponse<OAuthTokenResponse>>(
-      LYFT_ENDPOINTS.OAUTH.TOKEN,
-      params,
-      {
-        headers: {
-          ...headers,
-          authorization: basicAuth,
-        },
-      }
-    );
+    // Web flow: Call /oauth2/access_token with Basic Auth + OAuth cookie
+    // Unlike mobile which uses ONLY Basic Auth, web uses BOTH
+    const params = new URLSearchParams({
+      grant_type: 'urn:lyft:oauth2:grant_type:phone',
+      phone_code: code,
+      ui_variant: this.cityConfig.auth.brandId, // CRITICAL: Must match city
+      phone_number: phoneNumber,
+      extend_token_lifetime: 'true',
+    });
 
-    // Check if email challenge is required
-    if ('error' in response && response.error === 'challenge_required') {
+    // Web needs BOTH Basic Auth AND OAuth cookie
+    const verifyHeaders: Record<string, string> = {
+      accept: 'application/json, text/plain, */*',
+      authorization: basicAuth,
+      'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      'lyft-version': '2017-09-18',
+      'x-locale-language': 'en-US',
+    };
+
+    // Add OAuth cookie for session continuity
+    if (oauthCookie) {
+      verifyHeaders['cookie'] = `lyftAccessToken=${oauthCookie}`;
+    } else if (this.lyftAccessTokenCookie) {
+      verifyHeaders['cookie'] = `lyftAccessToken=${this.lyftAccessTokenCookie}`;
+    }
+
+    const response = await this.post<Record<string, unknown>>(LYFT_ENDPOINTS.OAUTH.TOKEN, params, {
+      headers: verifyHeaders,
+    });
+
+    // Parse response - web flow returns tokens in phoneauth response
+    if (!response.access_token) {
       throw new ApiError(
-        response.error_description || 'Email verification required',
-        ErrorCode.CHALLENGE_REQUIRED,
+        'No access token in response',
+        ErrorCode.INVALID_CREDENTIALS,
         401,
         response
       );
     }
 
-    return this.parseAuthResponse(response);
+    const user: CitibikeUser = {
+      id: (response.user_id as string) || 'unknown',
+      email: '',
+      firstName: '',
+      lastName: '',
+      phoneNumber,
+      membershipType: 'member',
+      memberSince: undefined,
+    };
+
+    return {
+      accessToken: response.access_token as string,
+      refreshToken: response.refresh_token as string | undefined,
+      expiresAt: Date.now() + ((response.expires_in as number) || 86400) * 1000,
+      user,
+    };
   }
 
   /**
-   * Complete email challenge
+   * Complete email challenge (web flow)
    */
   async verifyEmailChallenge(
     phoneNumber: string,
     code: string,
-    email: string
+    email: string,
+    oauthCookie?: string
   ): Promise<CitibikeAuthResponse> {
     const credentials = this.requireCredentials();
     const basicAuth = createBasicAuth(credentials.clientId, credentials.clientSecret);
 
-    const headers = createLyftHeaders({
-      clientSessionId: this.sessionInfo.clientSessionId,
-      xSession: this.sessionInfo.xSession,
-    });
-
+    // Web flow: Same as verifyOtp but with email parameter, no identifiers
     const params = new URLSearchParams({
-      email: email,
       grant_type: 'urn:lyft:oauth2:grant_type:phone',
-      identifiers: createEmptyIdentifiers(),
+      email: email,
       phone_code: code,
       phone_number: phoneNumber,
+      ui_variant: this.cityConfig.auth.brandId, // CRITICAL: Must match city
     });
 
-    const response = await this.post<LyftApiResponse<OAuthTokenResponse>>(
-      LYFT_ENDPOINTS.OAUTH.TOKEN,
-      params,
-      {
-        headers: {
-          ...headers,
-          authorization: basicAuth,
-        },
-      }
-    );
+    // Web needs BOTH Basic Auth AND OAuth cookie
+    const challengeHeaders: Record<string, string> = {
+      accept: 'application/json, text/plain, */*',
+      authorization: basicAuth,
+      'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      'lyft-version': '2017-09-18',
+      'x-locale-language': 'en-US',
+    };
 
-    return this.parseAuthResponse(response);
+    // Add OAuth cookie for session continuity
+    if (oauthCookie) {
+      challengeHeaders['cookie'] = `lyftAccessToken=${oauthCookie}`;
+    } else if (this.lyftAccessTokenCookie) {
+      challengeHeaders['cookie'] = `lyftAccessToken=${this.lyftAccessTokenCookie}`;
+    }
+
+    // Use raw fetch to inspect headers
+    const url = `${this.baseUrl}${LYFT_ENDPOINTS.OAUTH.TOKEN}`;
+    const fetchResponse = await fetch(url, {
+      method: 'POST',
+      headers: challengeHeaders,
+      body: params.toString(),
+    });
+
+    // Check for lyftAccessToken cookie in Set-Cookie headers (there may be multiple)
+    // Use getSetCookie() to get all Set-Cookie headers as an array
+    const setCookieHeaders = (
+      fetchResponse.headers as { getSetCookie?: () => string[] }
+    ).getSetCookie?.() || [fetchResponse.headers.get('set-cookie')];
+
+    // Try to extract access token from cookies
+    let lyftAccessTokenMatch: RegExpMatchArray | null = null;
+    for (const cookie of setCookieHeaders) {
+      if (cookie) {
+        const match = cookie.match(/lyftAccessToken=([^;]+)/);
+        if (match) {
+          lyftAccessTokenMatch = match;
+          break;
+        }
+      }
+    }
+
+    if (!fetchResponse.ok) {
+      const errorData = await fetchResponse.json();
+      console.error('❌ Email challenge error:', errorData);
+      throw new ApiError(
+        errorData.error_description || errorData.error || 'Email challenge failed',
+        errorData.error || ErrorCode.INVALID_CREDENTIALS,
+        fetchResponse.status,
+        errorData
+      );
+    }
+
+    const response = await fetchResponse.json();
+
+    // Parse response - web flow uses cookie-based auth, not Bearer tokens
+    // The access token is in the lyftAccessToken cookie, not the response body
+    let accessToken = (response.access_token as string) || (response.token as string);
+
+    // If no access token in body, use the lyftAccessToken cookie value
+    if (!accessToken && lyftAccessTokenMatch) {
+      accessToken = lyftAccessTokenMatch[1];
+    }
+
+    if (!accessToken) {
+      throw new ApiError(
+        'No access token in response or cookies',
+        ErrorCode.INVALID_CREDENTIALS,
+        401,
+        response
+      );
+    }
+
+    const user: CitibikeUser = {
+      id: (response.user_id as string) || 'unknown',
+      email: email,
+      firstName: '',
+      lastName: '',
+      phoneNumber,
+      membershipType: 'member',
+      memberSince: undefined,
+    };
+
+    return {
+      accessToken,
+      refreshToken: response.refresh_token as string | undefined,
+      expiresAt: Date.now() + ((response.expires_in as number) || 86400) * 1000,
+      user,
+    };
   }
 
   /**
-   * Request OTP code via SMS
+   * Request OTP code via SMS (web flow - requires OAuth cookie)
+   * Flow: Get app access token via OAuth, then use cookie for phoneauth
    */
   async requestOtp(
     phoneNumber: string
-  ): Promise<OTPRequestResponse & { sessionInfo: SessionInfo }> {
-    // First get app token
-    const appToken = await this.getAppAccessToken();
+  ): Promise<OTPRequestResponse & { sessionInfo: SessionInfo; oauthCookie: string }> {
+    // Step 1: Get app access token via OAuth (returns lyftAccessToken cookie)
+    const credentials = this.requireCredentials();
+    const basicAuth = createBasicAuth(credentials.clientId, credentials.clientSecret);
 
-    const headers = createLyftHeaders({
-      token: appToken,
-      clientSessionId: this.sessionInfo.clientSessionId,
-      xSession: this.sessionInfo.xSession,
-      isJson: true,
-      idlSource: 'pb.api.endpoints.v1.phone_auth.CreatePhoneAuthRequest',
+    const oauthResponse = await fetch(`${this.baseUrl}${LYFT_ENDPOINTS.OAUTH.TOKEN}`, {
+      method: 'POST',
+      headers: {
+        authorization: basicAuth,
+        'content-type': 'application/x-www-form-urlencoded',
+      },
+      body: 'grant_type=client_credentials',
     });
 
-    await this.post(
-      LYFT_ENDPOINTS.AUTH.PHONE_AUTH,
-      {
-        phone_number: phoneNumber,
-        voice_verification: false,
-      },
-      { headers }
-    );
+    // Extract lyftAccessToken cookie from Set-Cookie header
+    const setCookieHeader = oauthResponse.headers.get('set-cookie');
+    const lyftAccessToken = setCookieHeader?.match(/lyftAccessToken=([^;]+)/)?.[1];
+
+    if (!lyftAccessToken) {
+      throw new ApiError('Failed to get app access token', ErrorCode.INVALID_CREDENTIALS, 401);
+    }
+
+    // Cache the OAuth cookie for use in verifyOtp
+    this.lyftAccessTokenCookie = lyftAccessToken;
+
+    // Step 2: Call phoneauth with the cookie
+    const headers: Record<string, string> = {
+      accept: 'application/json, text/plain, */*',
+      'content-type': 'application/json',
+      'lyft-version': '2017-09-18',
+      'x-locale-language': 'en-US',
+      cookie: `lyftAccessToken=${lyftAccessToken}`,
+    };
+
+    const requestBody: Record<string, unknown> = {
+      phone_number: phoneNumber,
+      extend_token_lifetime: true,
+      ui_variant: this.cityConfig.auth.brandId,
+      message_format: 'sms_basic',
+    };
+
+    await this.post(LYFT_ENDPOINTS.AUTH.PHONE_AUTH, requestBody, { headers });
 
     return {
       success: true,
-      message: 'Verification code sent! Check your phone for a text from +1 (833) 504-2560.',
+      message: 'Verification code sent! Check your phone for a text.',
       expiresIn: 300,
       sessionInfo: this.sessionInfo,
+      oauthCookie: lyftAccessToken, // Return cookie so it can be stored in session
     };
   }
 
@@ -303,9 +450,9 @@ export class LyftApiClient extends BaseApiClient {
     });
 
     // Add location and region headers
-    const coords = location || MAP_CONSTANTS.DEFAULT_CENTER;
+    const coords = location || this.cityConfig.mapCenter;
     headers['x-location'] = `${coords.lat},${coords.lon}`;
-    headers['x-lyft-region'] = 'BKN'; // Brooklyn region for NYC
+    headers['x-lyft-region'] = this.cityConfig.auth.regionCode;
 
     // Canvas capabilities from the cURL request
     const requestBody = {
@@ -386,8 +533,7 @@ export class LyftApiClient extends BaseApiClient {
       xSession: this.sessionInfo.xSession,
     });
 
-    headers['x-location'] =
-      `${MAP_CONSTANTS.DEFAULT_CENTER.lat},${MAP_CONSTANTS.DEFAULT_CENTER.lon}`; // Default NYC location
+    headers['x-location'] = `${this.cityConfig.mapCenter.lat},${this.cityConfig.mapCenter.lon}`;
     headers['x-idl-source'] = 'pb.api.endpoints.v1.passenger.ReadPassengerUserRequest';
     headers['accept'] = 'application/x-protobuf,application/json';
 
@@ -409,8 +555,7 @@ export class LyftApiClient extends BaseApiClient {
       isJson: true,
     });
 
-    headers['x-location'] =
-      `${MAP_CONSTANTS.DEFAULT_CENTER.lat},${MAP_CONSTANTS.DEFAULT_CENTER.lon}`; // Default NYC location
+    headers['x-location'] = `${this.cityConfig.mapCenter.lat},${this.cityConfig.mapCenter.lon}`;
     headers['x-idl-source'] = 'pb.api.endpoints.v1.subscriptions.ReadSubscriptionsRequest';
 
     const response = await this.get<Record<string, unknown>>(LYFT_ENDPOINTS.USER.SUBSCRIPTIONS, {
@@ -437,9 +582,9 @@ export class LyftApiClient extends BaseApiClient {
     });
 
     // Add location and region headers
-    const coords = location || MAP_CONSTANTS.DEFAULT_CENTER;
+    const coords = location || this.cityConfig.mapCenter;
     headers['x-location'] = `${coords.lat},${coords.lon}`;
-    headers['x-lyft-region'] = 'BKN'; // Brooklyn region for NYC
+    headers['x-lyft-region'] = this.cityConfig.auth.regionCode;
     headers['x-capture-path-template'] = '/v1/last-mile/ride-history/{ride_id}';
 
     const response = await this.get<Record<string, unknown>>(
@@ -476,9 +621,8 @@ export class LyftApiClient extends BaseApiClient {
     });
 
     // Add location and region headers
-    headers['x-location'] =
-      `${MAP_CONSTANTS.DEFAULT_CENTER.lat},${MAP_CONSTANTS.DEFAULT_CENTER.lon}`; // NYC coordinates
-    headers['x-lyft-region'] = 'BKN'; // Brooklyn region for NYC
+    headers['x-location'] = `${this.cityConfig.mapCenter.lat},${this.cityConfig.mapCenter.lon}`;
+    headers['x-lyft-region'] = this.cityConfig.auth.regionCode;
 
     // Build request body
     const requestBody: Record<string, unknown> = {
@@ -499,9 +643,6 @@ export class LyftApiClient extends BaseApiClient {
       requestBody.cursor = options.cursor;
     }
 
-    console.log('🚀 Trip history request:', JSON.stringify(requestBody, null, 2));
-    console.log('🚀 Trip history Accept header:', headers['accept']);
-
     // Make raw fetch request to bypass BaseApiClient's protobuf handling
     const url = `${this.baseUrl}${LYFT_ENDPOINTS.TRIPS.TRIP_HISTORY}`;
     const fetchResponse = await fetch(url, {
@@ -514,7 +655,6 @@ export class LyftApiClient extends BaseApiClient {
     });
 
     const responseContentType = fetchResponse.headers.get('content-type');
-    console.log('📦 Trip history response content-type:', responseContentType);
 
     if (!fetchResponse.ok) {
       throw new Error(`Trip history request failed: ${fetchResponse.status}`);
@@ -523,7 +663,6 @@ export class LyftApiClient extends BaseApiClient {
     // Check if we got JSON or protobuf
     if (responseContentType?.includes('application/json')) {
       const jsonResponse = await fetchResponse.json();
-      console.log('📦 Trip history JSON response:', JSON.stringify(jsonResponse, null, 2));
 
       // Parse JSON response
       const trips: Array<Record<string, unknown>> = [];
@@ -593,8 +732,6 @@ export class LyftApiClient extends BaseApiClient {
         }
       }
 
-      console.log(`✅ Parsed ${trips.length} trips from JSON`);
-
       return {
         trips,
         hasMore: jsonResponse.has_more || false,
@@ -603,9 +740,6 @@ export class LyftApiClient extends BaseApiClient {
           : null,
       };
     } else {
-      console.log('⚠️  API still returned protobuf despite Accept: application/json header');
-      console.log('⚠️  Content-Type:', responseContentType);
-
       // Fall back to empty response
       return {
         trips: [],
@@ -689,16 +823,18 @@ export class LyftApiClient extends BaseApiClient {
 }
 
 // ============================================
-// Singleton Instance
+// Singleton Instance (Per City)
 // ============================================
-let lyftClientInstance: LyftApiClient | null = null;
+const lyftClientCache: Record<string, LyftApiClient> = {};
 
 /**
- * Get singleton Lyft API client instance
+ * Get singleton Lyft API client instance for a specific city
+ * Creates a new instance if one doesn't exist for the given city
  */
-export function getLyftClient(): LyftApiClient {
-  if (!lyftClientInstance) {
-    lyftClientInstance = new LyftApiClient();
+export function getLyftClient(cityId?: string): LyftApiClient {
+  const key = cityId || DEFAULT_CITY_ID;
+  if (!lyftClientCache[key]) {
+    lyftClientCache[key] = new LyftApiClient(cityId);
   }
-  return lyftClientInstance;
+  return lyftClientCache[key];
 }

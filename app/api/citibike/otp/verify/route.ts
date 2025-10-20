@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
 
     // Get temporary session data
     const storedPhone = cookieStore.get(SESSION_COOKIES.TEMP_PHONE)?.value;
+    const oauthCookie = cookieStore.get(SESSION_COOKIES.TEMP_OAUTH_COOKIE)?.value;
 
     if (!storedPhone) {
       return NextResponse.json(
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     // Get code from request
     const body: OTPVerifyBody = await request.json();
-    const { code } = body;
+    const { code, cityId } = body;
 
     if (!code) {
       return NextResponse.json(
@@ -49,9 +50,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use unified Lyft client
-    const lyftClient = getLyftClient();
-    const authResponse = await lyftClient.verifyOtp(storedPhone, code);
+    // Use unified Lyft client with city context
+    const lyftClient = getLyftClient(cityId);
+    const authResponse = await lyftClient.verifyOtp(storedPhone, code, undefined, oauthCookie);
 
     // Store tokens in httpOnly cookies
     cookieStore.set(
@@ -84,6 +85,7 @@ export async function POST(request: NextRequest) {
     cookieStore.delete(SESSION_COOKIES.TEMP_SESSION);
     cookieStore.delete(SESSION_COOKIES.TEMP_CLIENT_SESSION);
     cookieStore.delete(SESSION_COOKIES.TEMP_PHONE);
+    cookieStore.delete(SESSION_COOKIES.TEMP_OAUTH_COOKIE);
 
     // Return success response (don't expose actual tokens)
     const response: CitibikeAuthResponse = {

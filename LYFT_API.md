@@ -1,6 +1,38 @@
-# Lyft/Citibike API Documentation
+# Lyft Bikeshare API Documentation
 
-_Reverse engineered from mitmproxy captures_
+_Reverse engineered from mitmproxy captures and web authentication analysis_
+
+## Supported Cities
+
+This implementation supports **8 active Lyft bikeshare systems** worldwide:
+
+### 🇺🇸 United States (6 systems)
+
+1. **Citi Bike** (New York City) - `cityId: nyc`, `regionCode: BKN`, `brandId: citi-bike`
+2. **Bay Wheels** (San Francisco) - `cityId: sf`, `regionCode: SFO`, `brandId: baywheels`
+3. **Divvy** (Chicago) - `cityId: chicago`, `regionCode: CHI`, `brandId: divvy`
+4. **Capital Bikeshare** (Washington DC) - `cityId: dc`, `regionCode: DC`, `brandId: capital-bikeshare`
+5. **Bluebikes** (Boston) - `cityId: boston`, `regionCode: BOS`, `brandId: blue-bikes`
+6. **BIKETOWN** (Portland, OR) - `cityId: portland`, `regionCode: PDX`, `brandId: biketown`
+
+### 🇲🇽 Mexico (1 system)
+
+7. **Ecobici** (Mexico City) - `cityId: mexicocity`, `regionCode: MEX`, `brandId: ecobici`
+
+### 🇨🇦 Canada (1 system)
+
+8. **BIXI** (Montreal) - `cityId: montreal`, `regionCode: MTL`, `brandId: bixi`
+
+### ❌ Discontinued Systems (no longer operational)
+
+- **Nice Ride** (Minneapolis) - Shut down March 2023
+- **CoGo Bikeshare** (Columbus, OH) - Shut down February 2025
+
+### 🔒 Not Supported (no public GBFS feed)
+
+- **Santander Cycles** (London) - Uses Lyft auth but no public GBFS feed available
+
+All systems use the same Lyft OAuth authentication infrastructure with city-specific `brandId` and `regionCode` parameters.
 
 ## Base URL
 
@@ -10,30 +42,28 @@ https://api.lyft.com
 
 ## Authentication Flow
 
-### 1. Get App Token (Client Credentials)
+**⚠️ IMPORTANT**: This implementation uses **web-based OAuth authentication** (not mobile app credentials). The web flow avoids email verification challenges and works across all Lyft bikeshare systems.
 
-**Endpoint**: `POST /oauth2/access_token`
+### Web Authentication vs Mobile Authentication
+
+| Feature            | Mobile (Deprecated)         | Web (Current Implementation)   |
+| ------------------ | --------------------------- | ------------------------------ |
+| Credentials        | Mobile app CLIENT_ID/SECRET | Web OAuth credentials          |
+| PKCE               | Required                    | Not required                   |
+| Device Identifiers | Required (iCloud UUID)      | Not required (empty array)     |
+| Email Challenges   | Common                      | Rare/Never                     |
+| Session Management | x-session headers           | Cookie-based (lyftAccessToken) |
+| Multi-City Support | Single city                 | All Lyft systems               |
+
+### 1. Get OAuth Cookie (Client Credentials) - Web Flow
+
+**Endpoint**: `POST /oauth/token`
 
 **Headers**:
 
 ```
-Authorization: Basic {base64(CLIENT_ID:CLIENT_SECRET)}
-Content-Type: application/x-www-form-urlencoded; charset=utf-8
-User-Agent: com.citibikenyc.citibike:iOS:18.6.2:2025.38.3.26642648
-x-session: {base64 encoded session JSON}
-x-client-session-id: {UUID}
-x-timestamp-ms: {epoch milliseconds}
-x-locale-language: en
-x-locale-region: US
-x-device-density: 3.0
-x-design-id: x
-user-device: iPhone16,1
-upload-draft-interop-version: 6
-upload-complete: ?1
-x-timestamp-source: system
-accept-language: en_US
-accept: application/json
-cookie: (empty string)
+Authorization: Basic {base64(WEB_CLIENT_ID:WEB_CLIENT_SECRET)}
+Content-Type: application/x-www-form-urlencoded
 ```
 
 **Body**:
@@ -44,44 +74,74 @@ grant_type=client_credentials
 
 **Response**:
 
-```json
-{
-  "token_type": "Bearer",
-  "access_token": "...",
-  "expires_in": 86400
-}
-```
-
-### 2. Request Phone OTP
-
-**Endpoint**: `POST /v1/phoneauth`
-
-**Headers**: Same as above, but with:
+The response includes a `Set-Cookie` header with the OAuth token:
 
 ```
-Authorization: Bearer {app_access_token from step 1}
+Set-Cookie: lyftAccessToken={token_value}; Path=/; HttpOnly; Secure
+```
+
+**Important Notes**:
+
+- Uses **web OAuth credentials** (different from mobile app credentials)
+- Returns cookie instead of JSON access token
+- Cookie must be included in subsequent requests for session continuity
+- Same credentials work for all Lyft bikeshare systems worldwide
+
+**Implementation**: `lib/api/lyft-client.ts:getLyftOAuthCookie()`
+
+### 2. Request Phone OTP - Web Flow
+
+**Endpoint**: `POST /phoneauth`
+
+**Headers**:
+
+```
 Content-Type: application/json
-x-idl-source: pb.api.endpoints.v1.phone_auth.CreatePhoneAuthRequest
-accept: application/x-protobuf,application/json
-x-location: {lat},{lon} (optional)
+Cookie: lyftAccessToken={oauth_cookie_from_step_1}
 ```
 
 **Body**:
 
 ```json
 {
-  "phone_number": "+1XXXXXXXXXX",
-  "voice_verification": false
+  "phoneNumber": "+1XXXXXXXXXX",
+  "ui_variant": "{brandId}"
 }
 ```
 
-**Response**: 200 OK (SMS sent to phone)
+**Parameters**:
 
-### 3. Verify OTP and Get User Token
+- `phoneNumber`: E.164 format phone number (+1 for US/Canada, +52 for Mexico)
+- `ui_variant`: City-specific brand identifier (e.g., "citi-bike", "divvy", "ecobici", "bixi")
 
-**Endpoint**: `POST /oauth2/access_token`
+**Response**:
 
-**Headers**: Same as step 1
+```json
+{
+  "verification_code_length": 6
+}
+```
+
+**Important Notes**:
+
+- **No Authorization header** - uses OAuth cookie instead
+- **No PKCE** - web flow doesn't require code challenge
+- Brand identifier (`ui_variant`) determines which system the user is logging into
+- Same endpoint works for all 8 Lyft bikeshare systems
+
+**Implementation**: `lib/api/lyft-client.ts:requestOtp()`
+
+### 3. Verify OTP and Get User Token - Web Flow
+
+**Endpoint**: `POST /oauth/token`
+
+**Headers**:
+
+```
+Authorization: Basic {base64(WEB_CLIENT_ID:WEB_CLIENT_SECRET)}
+Content-Type: application/x-www-form-urlencoded
+Cookie: lyftAccessToken={oauth_cookie_from_step_1}
+```
 
 **Body**:
 
@@ -89,83 +149,80 @@ x-location: {lat},{lon} (optional)
 grant_type=urn:lyft:oauth2:grant_type:phone
 phone_number={E.164 format phone}
 phone_code={6 digit code from SMS}
-identifiers={base64 encoded device identifiers JSON}
-challenges={base64 encoded challenges JSON - OPTIONAL, only if challenge_required}
+ui_variant={brandId}
 ```
 
-**Device Identifiers Format**:
+**Parameters**:
 
-```json
-[
-  {
-    "type": "icloud",
-    "source": "icloud",
-    "name": "F5BA9612-74F3-4D43-A941-607C6325E2A0"
-  }
-]
-```
+- `grant_type`: Always `urn:lyft:oauth2:grant_type:phone` for phone verification
+- `phone_number`: Same phone number used in step 2
+- `phone_code`: 6-digit verification code from SMS
+- `ui_variant`: City-specific brand identifier (must match step 2)
 
 **Success Response**:
+
+The response includes a `Set-Cookie` header with the access token:
+
+```
+Set-Cookie: lyftAccessToken={user_access_token}; Path=/; HttpOnly; Secure
+```
+
+**Response Body** (JSON):
 
 ```json
 {
   "token_type": "Bearer",
-  "access_token": "...",
   "expires_in": 86400,
-  "refresh_token": "...",
-  "user_id": "USER_ID_HERE",
-  "scope": "offline privileged.price.upfront profile public rides.active_ride rides.read rides.request scopedurl users.create",
-  "extension_code": "..."
+  "scope": "privileged.price.upfront public users.create"
 }
 ```
 
-**Challenge Required Response (401)**:
+**Important Notes**:
 
-```json
-{
-  "error": "challenge_required",
-  "error_description": "Are you [NAME]?\n\nYou can verify your account by entering the email address associated with your account.",
-  "challenges": [
-    {
-      "identifier": "email_match",
-      "data": "u***@e*****.com",
-      "status": []
-    }
-  ],
-  "prompt_actions": [
-    { "action": "challenge", "message": "This is my account" },
-    { "action": "force_new_account", "message": "Create a new account" }
-  ]
-}
+- **Cookie-based authentication**: Access token is in the `Set-Cookie` header, not response body
+- **No device identifiers required**: Web flow doesn't need iCloud UUIDs
+- **No PKCE**: Web flow doesn't use code challenge/verifier
+- **Rare email challenges**: Web credentials rarely trigger email verification
+- Token cookie is used for all subsequent authenticated requests
+
+**Implementation**: `lib/api/lyft-client.ts:verifyOtp()`
+
+### 4. Email Challenge (if required) - Web Flow
+
+**Endpoint**: `POST /oauth/token`
+
+**Note**: Rarely triggered with web credentials, but implemented for completeness.
+
+**Headers**:
+
 ```
-
-### 4. Email Challenge (if required)
-
-**Endpoint**: `POST /oauth2/access_token`
-
-**Note**: Same endpoint as step 3, but includes the `email` parameter to verify account ownership.
-
-**Headers**: Same as step 1
+Authorization: Basic {base64(WEB_CLIENT_ID:WEB_CLIENT_SECRET)}
+Content-Type: application/x-www-form-urlencoded
+Cookie: lyftAccessToken={oauth_cookie_from_step_1}
+```
 
 **Body**:
 
 ```
 email={user_email_address}
 grant_type=urn:lyft:oauth2:grant_type:phone
-identifiers={base64 encoded empty identifiers: "W10="}
 phone_code={6 digit code from SMS}
 phone_number={E.164 format phone}
+ui_variant={brandId}
 ```
+
+**Response**:
+
+Same as step 3 - returns `lyftAccessToken` cookie in `Set-Cookie` header.
 
 **Implementation Notes**:
 
-- When challenge_required error is returned, the user must provide their email address
-- The email is sent as a URL-encoded form parameter (not as a challenges object)
-- Use empty identifiers array (`[]` encoded as base64: `W10=`) for the challenge request
-- The email verification is done server-side by matching against the account's registered email
-- Upon successful verification, returns the same response as step 3 (user token)
+- **Rarely needed**: Web OAuth credentials almost never trigger email challenges
+- Email verification matches against account's registered email address
+- No device identifiers or empty identifiers array needed
+- Access token extracted from `Set-Cookie` header, not response body
 
-**Implemented in**: `lib/api/lyft-client.ts:145` (verifyEmailChallenge method)
+**Implemented in**: `lib/api/lyft-client.ts:verifyEmailChallenge()`
 
 ## Authenticated User Endpoints
 

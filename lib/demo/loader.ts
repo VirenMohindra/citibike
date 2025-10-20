@@ -7,8 +7,7 @@ import { db, Trip, UserProfile } from '@/lib/db';
 import { CitibikeUser } from '@/lib/types';
 import { DemoDataPackage } from '@/lib/demo/types';
 import { useAppStore } from '@/lib/store';
-
-const demoData = await import('./data/pregenerated-demo.json');
+import demoData from './data/pregenerated-demo.json';
 
 /**
  * Load demo user from pregenerated data

@@ -4,20 +4,25 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { getLyftClient } from '@/lib/api/lyft-client';
+import { SESSION_CONSTANTS, CITY_CONSTANTS } from '@/config/constants';
 
 export async function GET() {
   try {
     const cookieStore = await cookies();
 
     // Get access token from cookie
-    const accessToken = cookieStore.get('citibike_access_token')?.value;
+    const accessToken = cookieStore.get(SESSION_CONSTANTS.ACCESS_TOKEN_COOKIE)?.value;
 
     if (!accessToken) {
       return NextResponse.json({ error: 'Not authenticated. Please log in.' }, { status: 401 });
     }
 
-    // Use unified Lyft client
-    const lyftClient = getLyftClient();
+    // Get city from cookie (set by client when user switches cities)
+    const cityId =
+      cookieStore.get(CITY_CONSTANTS.COOKIE_NAME)?.value || CITY_CONSTANTS.DEFAULT_CITY_ID;
+
+    // Use unified Lyft client with city context
+    const lyftClient = getLyftClient(cityId);
     const data = await lyftClient.getUserProfile(accessToken);
 
     // Extract user info

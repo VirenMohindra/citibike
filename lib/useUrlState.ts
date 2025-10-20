@@ -6,6 +6,7 @@ import { useAppStore } from '@/lib/store';
 import type { StationWithStatus } from '@/lib/types';
 import { getStationSlug, findStationBySlug } from '@/lib/station-utils';
 import { isValidCityId } from '@/config/cities';
+import { CITY_CONSTANTS } from '@/config/constants';
 
 /**
  * Custom hook to synchronize app state with URL
@@ -33,7 +34,7 @@ export function useUrlState(stations: StationWithStatus[]) {
     const params = new URLSearchParams();
 
     // Always include city in URL (for shareability)
-    if (currentCity && currentCity !== 'nyc') {
+    if (currentCity && currentCity !== CITY_CONSTANTS.DEFAULT_CITY_ID) {
       // Only add city param if it's not the default (NYC)
       params.set('city', currentCity);
     }
@@ -66,6 +67,10 @@ export function useUrlState(stations: StationWithStatus[]) {
     // Load city from URL first (before stations are available)
     const cityFromUrl = searchParams.get('city');
     if (cityFromUrl && isValidCityId(cityFromUrl) && cityFromUrl !== currentCity) {
+      // Set cookie immediately so server-side API routes can access it
+      if (typeof document !== 'undefined') {
+        document.cookie = `${CITY_CONSTANTS.COOKIE_NAME}=${cityFromUrl}; path=/; max-age=${CITY_CONSTANTS.COOKIE_MAX_AGE}; samesite=strict`;
+      }
       setCurrentCity(cityFromUrl);
     }
 
@@ -126,7 +131,7 @@ export function useUrlState(stations: StationWithStatus[]) {
     const params = new URLSearchParams();
 
     // Include city in shareable link (if not default)
-    if (currentCity && currentCity !== 'nyc') {
+    if (currentCity && currentCity !== CITY_CONSTANTS.DEFAULT_CITY_ID) {
       params.set('city', currentCity);
     }
 
