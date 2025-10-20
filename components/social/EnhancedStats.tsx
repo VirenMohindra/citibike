@@ -3,12 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Trophy, TrendingUp, Clock, DollarSign, Zap } from 'lucide-react';
 import { db } from '@/lib/db/schema';
-import {
-  calculateEnhancedStats,
-  formatDuration,
-  formatCost,
-  type EnhancedTripStats,
-} from '@/lib/stats';
+import { calculateEnhancedStats, formatDuration, type EnhancedTripStats } from '@/lib/stats';
 import type { Trip } from '@/lib/types';
 import { useAppStore } from '@/lib/store';
 
@@ -113,9 +108,7 @@ export default function EnhancedStats() {
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-2">
           <Trophy className="w-6 h-6 text-yellow-500" />
-          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-            Personal Records
-          </h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Personal Records</h2>
         </div>
       </div>
 
@@ -126,7 +119,9 @@ export default function EnhancedStats() {
               key={index}
               className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 hover:shadow-md transition-shadow"
             >
-              <div className={`w-12 h-12 ${achievement.bgColor} rounded-lg flex items-center justify-center mb-3`}>
+              <div
+                className={`w-12 h-12 ${achievement.bgColor} rounded-lg flex items-center justify-center mb-3`}
+              >
                 <achievement.icon className={`w-6 h-6 ${achievement.color}`} />
               </div>
               <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">

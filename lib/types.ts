@@ -246,6 +246,7 @@ export interface Trip {
   distance?: number; // meters, calculated from coordinates or estimated from duration
   polyline?: string; // Encoded polyline from trip details API (Google polyline format)
   hasActualCoordinates?: boolean; // True if coordinates are from trip details API, false if estimated
+  cost?: number; // cents
 }
 
 // Response type for individual trip details API

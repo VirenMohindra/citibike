@@ -348,7 +348,10 @@ export async function getActivityFeed(
 /**
  * Get recent activities for a specific user
  */
-export async function getUserActivities(userId: string, limit: number = 20): Promise<ActivityFeedItem[]> {
+export async function getUserActivities(
+  userId: string,
+  limit: number = 20
+): Promise<ActivityFeedItem[]> {
   return await db.activityFeed
     .where({ actorId: userId })
     .reverse()

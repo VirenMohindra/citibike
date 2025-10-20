@@ -168,9 +168,7 @@ export default function TripSocialActions({
           onClick={handlePrivacyToggle}
           disabled={isProcessing}
           className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
-            isPublic
-              ? 'text-green-600 dark:text-green-400'
-              : 'text-gray-600 dark:text-gray-400'
+            isPublic ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'
           } ${isProcessing ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-80'}`}
           title={isPublic ? 'Make private' : 'Make public'}
         >

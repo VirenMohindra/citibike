@@ -73,11 +73,7 @@ export default function FollowButton({ userId, userName, compact = false }: Foll
         } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
         title={isFollowingUser ? `Unfollow ${userName}` : `Follow ${userName}`}
       >
-        {isFollowingUser ? (
-          <UserMinus className="w-5 h-5" />
-        ) : (
-          <UserPlus className="w-5 h-5" />
-        )}
+        {isFollowingUser ? <UserMinus className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />}
       </button>
     );
   }

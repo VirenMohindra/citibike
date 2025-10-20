@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense } from 'react';
+import Image from 'next/image';
 import NavBar from '@/components/nav/NavBar';
 import ActivityFeed from '@/components/social/ActivityFeed';
 import EnhancedStats from '@/components/social/EnhancedStats';
@@ -18,7 +19,7 @@ function FeedContent() {
             Welcome to the Activity Feed
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-6">
-            Log in to see your friends' activities and share your rides
+            Log in to see your friends&apos; activities and share your rides
           </p>
           <CitibikeLogin compact={false} />
         </div>
@@ -35,9 +36,7 @@ function FeedContent() {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
               Activity Feed
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              See what your friends are riding
-            </p>
+            <p className="text-gray-600 dark:text-gray-400">See what your friends are riding</p>
           </div>
 
           <Suspense
@@ -71,10 +70,12 @@ function FeedContent() {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <div className="flex items-center space-x-4 mb-4">
               {citibikeUser.userPhoto ? (
-                <img
+                <Image
                   src={citibikeUser.userPhoto}
                   alt={`${citibikeUser.firstName} ${citibikeUser.lastName}`}
                   className="w-16 h-16 rounded-full object-cover"
+                  width={64}
+                  height={64}
                 />
               ) : (
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">

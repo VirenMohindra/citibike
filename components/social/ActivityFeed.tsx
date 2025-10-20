@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { Heart, MessageCircle, UserPlus, Trophy, Bike } from 'lucide-react';
 import { getActivityFeed } from '@/lib/social';
 import type { ActivityFeedItem } from '@/lib/db/schema';
@@ -92,13 +93,15 @@ export default function ActivityFeed() {
   };
 
   const getActivityText = (activity: ActivityFeedItem) => {
-    const tripData = activity.tripData as {
-      distance?: number;
-      duration?: number;
-      startStationName?: string;
-      endStationName?: string;
-      bikeType?: string;
-    } | undefined;
+    const tripData = activity.tripData as
+      | {
+          distance?: number;
+          duration?: number;
+          startStationName?: string;
+          endStationName?: string;
+          bikeType?: string;
+        }
+      | undefined;
 
     switch (activity.actionType) {
       case 'kudos':
@@ -139,15 +142,20 @@ export default function ActivityFeed() {
 
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
         {feed.map((activity) => (
-          <div key={activity.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+          <div
+            key={activity.id}
+            className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+          >
             <div className="flex items-start space-x-3">
               {/* User Avatar */}
               <div className="flex-shrink-0">
                 {activity.actorPhoto ? (
-                  <img
+                  <Image
                     src={activity.actorPhoto}
                     alt={activity.actorName}
                     className="w-10 h-10 rounded-full object-cover"
+                    width={40}
+                    height={40}
                   />
                 ) : (
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">

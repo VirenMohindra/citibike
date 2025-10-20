@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { Send, Trash2, Edit2 } from 'lucide-react';
 import { getTripComments, addComment, updateComment, deleteComment } from '@/lib/social';
 import type { Comment } from '@/lib/db/schema';
@@ -19,18 +20,18 @@ export default function CommentSection({ tripId, tripOwnerId }: CommentSectionPr
   const [editText, setEditText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    loadComments();
-  }, [tripId]);
-
-  async function loadComments() {
+  const loadComments = useCallback(async () => {
     try {
       const tripComments = await getTripComments(tripId);
       setComments(tripComments);
     } catch (error) {
       console.error('Error loading comments:', error);
     }
-  }
+  }, [tripId]);
+
+  useEffect(() => {
+    loadComments();
+  }, [loadComments]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,10 +111,12 @@ export default function CommentSection({ tripId, tripOwnerId }: CommentSectionPr
             {/* User Avatar */}
             <div className="flex-shrink-0">
               {comment.userPhoto ? (
-                <img
+                <Image
                   src={comment.userPhoto}
                   alt={comment.userName}
                   className="w-8 h-8 rounded-full object-cover"
+                  width={32}
+                  height={32}
                 />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-semibold">
@@ -203,10 +206,12 @@ export default function CommentSection({ tripId, tripOwnerId }: CommentSectionPr
       <form onSubmit={handleSubmit} className="flex items-start space-x-3">
         <div className="flex-shrink-0">
           {citibikeUser.userPhoto ? (
-            <img
+            <Image
               src={citibikeUser.userPhoto}
               alt={`${citibikeUser.firstName} ${citibikeUser.lastName}`}
               className="w-8 h-8 rounded-full object-cover"
+              width={32}
+              height={32}
             />
           ) : (
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-semibold">
